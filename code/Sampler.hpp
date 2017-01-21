@@ -2,6 +2,7 @@
 #define TwinPeaks_Sampler
 
 // Includes
+#include <fstream>
 #include <iostream>
 #include <stdexcept>
 #include <stdlib.h>     // For size_t
@@ -39,12 +40,18 @@ class Sampler
         // Flag for whether the Sampler is ready to go.
         bool initialised;
 
+        // Iteration counter
+        unsigned int iteration;
+
     public:
         // Constructor. You must specify the number of particles.
         Sampler(size_t num_particles);
 
         // Generate all particles from the prior, prepare the sampler
         void initialise(RNG& rng);
+
+        // Do a single NS iteration
+        void do_iteration(RNG& rng);
 
         // Some getters
         const std::vector<std::tuple<double, double>> get_scalars()
@@ -79,6 +86,7 @@ Sampler<ParticleType>::Sampler(size_t num_particles)
 ,context_particles(num_particles)
 ,context_scalars(num_particles)
 ,initialised(false)
+,iteration(0)
 {
     if(num_particles == 0)
         throw std::invalid_argument("Invalid number of particles.");
@@ -114,7 +122,30 @@ void Sampler<ParticleType>::initialise(RNG& rng)
     for(double& tb: ucc_tiebreakers)
         tb = rng.rand();
 
+    // Clear output file
+    std::fstream fout("sample_info.txt", std::ios::out);
+    fout.close();
+
     initialised = true;
+    iteration = 0;
+}
+
+template<class ParticleType>
+void Sampler<ParticleType>::do_iteration(RNG& rng)
+{
+    // Increment iteration
+    ++iteration;
+
+    // Find the worst particle.
+    size_t worst = find_worst();
+    auto worst_scalars = scalars[worst];
+
+    // Write out iteration and worst particle's scalars.
+    std::fstream fout("sample_info.txt", std::ios::out | std::ios::app);
+    fout<<iteration<<' ';
+    fout<<std::get<0>(worst_scalars)<<' ';
+    fout<<std::get<1>(worst_scalars)<<std::endl;
+    fout.close();
 }
 
 template<class ParticleType>
