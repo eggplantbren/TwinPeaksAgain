@@ -1,7 +1,9 @@
 #ifndef InfoNest_TwinPeaks
 #define InfoNest_TwinPeaks
 
-// Useful functions, copied from DNest4
+#include <tuple>
+
+// Useful functions, some of which were copied from DNest4
 
 namespace TwinPeaks
 {
@@ -15,6 +17,10 @@ namespace TwinPeaks
 double mod(double y, double x);
 int    mod(int y, int x);
 void   wrap(double& x, double min, double max);
+
+// Are both values in the first tuple above both in the second?
+bool both_above(const std::tuple<double, double>& x,
+                const std::tuple<double, double>& y);
 
 } // namespace TwinPeaks
 

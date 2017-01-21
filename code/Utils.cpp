@@ -25,5 +25,13 @@ int mod(int y, int x)
 		return (x-1) - TwinPeaks::mod(-y-1, x);
 }
 
+bool both_above(const std::tuple<double, double>& x,
+                const std::tuple<double, double>& y)
+{
+    bool first  = (std::get<0>(x)) > (std::get<0>(y));
+    bool second = (std::get<1>(x)) > (std::get<1>(y));
+    return (first && second);
+}
+
 } // namespace TwinPeaks
 
