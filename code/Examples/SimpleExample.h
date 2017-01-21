@@ -26,6 +26,9 @@ class SimpleExample
         // Generate from the prior
         void from_prior(RNG& rng);
 
+        // Metropolis proposal
+        double perturb(RNG& rng);
+
 };
 
 
