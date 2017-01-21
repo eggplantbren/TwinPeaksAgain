@@ -62,6 +62,9 @@ class Sampler
         // Calculate uccs of all particles
         void calculate_uccs();
 
+        // Find the worst particle and return its index.
+        size_t find_worst() const;
+
 };
 
 
@@ -135,6 +138,26 @@ void Sampler<ParticleType>::calculate_uccs()
 {
     for(size_t i=0; i<particles.size(); ++i)
         uccs[i] = calculate_ucc(i);
+}
+
+template<class ParticleType>
+size_t Sampler<ParticleType>::find_worst() const
+{
+    // Worst particle found so far
+    size_t worst_index = 0;
+    double worst_value = uccs[worst_index] + ucc_tiebreakers[worst_index];
+
+    for(size_t i=1; i<particles.size(); ++i)
+    {
+        double current_value = uccs[i] + ucc_tiebreakers[i];
+        if(current_value > worst_value)
+        {
+            worst_index = i;
+            worst_value = current_value;
+        }
+    }
+
+    return worst_index;
 }
 
 } // namespace TwinPeaks
