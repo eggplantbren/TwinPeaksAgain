@@ -8,6 +8,7 @@
 #include <stdlib.h>     // For size_t
 #include <tuple>
 #include <vector>
+#include "Context.h"
 #include "RNG.h"
 #include "Utils.h"
 
@@ -33,8 +34,8 @@ class Sampler
         std::vector<size_t> uccs;
         std::vector<double> ucc_tiebreakers;
 
-        // Scalars that define the context
-        std::vector<std::tuple<double, double>> context_scalars;
+        // The context points
+        Context context;
 
         // Flag for whether the Sampler is ready to go.
         bool initialised;
@@ -89,7 +90,7 @@ Sampler<ParticleType>::Sampler(size_t num_particles)
 ,scalars(num_particles)
 ,uccs(num_particles)
 ,ucc_tiebreakers(num_particles)
-,context_scalars(num_particles)
+,context()
 ,initialised(false)
 ,iteration(0)
 {
@@ -111,14 +112,14 @@ void Sampler<ParticleType>::initialise(RNG& rng)
     }
     std::cout<<"done."<<std::endl;
 
-    // Generate the *context* particles
+    // Generate the context points
     std::cout<<"# Generating context...";
     std::cout<<std::flush;
-    for(size_t i=0; i<context_scalars.size(); ++i)
+    for(size_t i=0; i<particles.size(); ++i)
     {
         ParticleType p;
         p.from_prior(rng);
-        context_scalars[i] = p.get_scalars();
+        context.add_point(p.get_scalars());
     }
     std::cout<<"done."<<std::endl;
 
@@ -201,7 +202,7 @@ void Sampler<ParticleType>::replace_particle
 
         // Evaluate proposal
         auto proposal_scalars = proposal.get_scalars();
-        size_t proposal_ucc = calculate_ucc(proposal_scalars);
+        size_t proposal_ucc = context.calculate_ucc(proposal_scalars);
         double ucc_smooshed = proposal_ucc + proposal_ucc_tiebreaker;
 
         // Accept?
@@ -218,24 +219,10 @@ void Sampler<ParticleType>::replace_particle
 }
 
 template<class ParticleType>
-size_t Sampler<ParticleType>::calculate_ucc
-                            (const std::tuple<double, double>& s) const
-{
-    size_t ucc = 0;
-    for(size_t j=0; j<context_scalars.size(); ++j)
-    {
-        if(both_above(context_scalars[j], s))
-            ++ucc;
-    }
-
-    return ucc;
-}
-
-template<class ParticleType>
 void Sampler<ParticleType>::calculate_uccs()
 {
     for(size_t i=0; i<particles.size(); ++i)
-        uccs[i] = calculate_ucc(scalars[i]);
+        uccs[i] = context.calculate_ucc(scalars[i]);
 }
 
 template<class ParticleType>
