@@ -1,8 +1,9 @@
 #ifndef TwinPeaks_SimpleExample
 #define TwinPeaks_SimpleExample
 
+// Includes
+#include <tuple>
 #include <vector>
-
 #include "RNG.h"
 
 namespace TwinPeaks
@@ -29,6 +30,8 @@ class SimpleExample
         // Metropolis proposal
         double perturb(RNG& rng);
 
+        // Get the scalars
+        std::tuple<double, double> get_scalars() const;
 };
 
 

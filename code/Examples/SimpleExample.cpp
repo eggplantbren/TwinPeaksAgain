@@ -35,7 +35,19 @@ double SimpleExample::perturb(RNG& rng)
     return 0.0;
 }
 
+std::tuple<double, double> SimpleExample::get_scalars() const
+{
+    double s1 = 0.0;
+    double s2 = 0.0;
 
+    for(double x: xs)
+    {
+        s1 += -0.5*pow(x - 0.5, 2);
+        s2 += -std::abs(x);
+    }
+
+    return {s1, s2};
+}
 
 } // namespace TwinPeaks
 
