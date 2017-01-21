@@ -63,8 +63,8 @@ class Sampler
     /***** Private helper functions *****/
     private:
 
-        // Calculate the ucc of particle i wrt the context scalars
-        size_t calculate_ucc(size_t i) const;
+        // Calculate the ucc wrt the context scalars
+        size_t calculate_ucc(const std::tuple<double, double>& s) const;
 
         // Calculate uccs of all particles
         void calculate_uccs();
@@ -151,15 +151,13 @@ void Sampler<ParticleType>::do_iteration(RNG& rng)
 }
 
 template<class ParticleType>
-size_t Sampler<ParticleType>::calculate_ucc(size_t i) const
+size_t Sampler<ParticleType>::calculate_ucc
+                            (const std::tuple<double, double>& s) const
 {
-    if(i >= particles.size())
-        throw std::invalid_argument("Argument to calculate_ucc out of bounds.");
-
     size_t ucc = 0;
     for(size_t j=0; j<context_particles.size(); ++j)
     {
-        if(both_above(context_scalars[j], scalars[i]))
+        if(both_above(context_scalars[j], s))
             ++ucc;
     }
 
@@ -170,7 +168,7 @@ template<class ParticleType>
 void Sampler<ParticleType>::calculate_uccs()
 {
     for(size_t i=0; i<particles.size(); ++i)
-        uccs[i] = calculate_ucc(i);
+        uccs[i] = calculate_ucc(scalars[i]);
 }
 
 template<class ParticleType>
