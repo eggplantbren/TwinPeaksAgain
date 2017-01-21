@@ -33,8 +33,7 @@ class Sampler
         std::vector<size_t> uccs;
         std::vector<double> ucc_tiebreakers;
 
-        // Particles that define the context
-        std::vector<ParticleType> context_particles;
+        // Scalars that define the context
         std::vector<std::tuple<double, double>> context_scalars;
 
         // Flag for whether the Sampler is ready to go.
@@ -90,7 +89,6 @@ Sampler<ParticleType>::Sampler(size_t num_particles)
 ,scalars(num_particles)
 ,uccs(num_particles)
 ,ucc_tiebreakers(num_particles)
-,context_particles(num_particles)
 ,context_scalars(num_particles)
 ,initialised(false)
 ,iteration(0)
@@ -114,13 +112,13 @@ void Sampler<ParticleType>::initialise(RNG& rng)
     std::cout<<"done."<<std::endl;
 
     // Generate the *context* particles
-    std::cout<<"# Generating "<<context_particles.size()<<' ';
-    std::cout<<"context particles from the prior...";
+    std::cout<<"# Generating context...";
     std::cout<<std::flush;
-    for(size_t i=0; i<context_particles.size(); ++i)
+    for(size_t i=0; i<context_scalars.size(); ++i)
     {
-        context_particles[i].from_prior(rng);
-        context_scalars[i] = context_particles[i].get_scalars();
+        ParticleType p;
+        p.from_prior(rng);
+        context_scalars[i] = p.get_scalars();
     }
     std::cout<<"done."<<std::endl;
 
@@ -224,7 +222,7 @@ size_t Sampler<ParticleType>::calculate_ucc
                             (const std::tuple<double, double>& s) const
 {
     size_t ucc = 0;
-    for(size_t j=0; j<context_particles.size(); ++j)
+    for(size_t j=0; j<context_scalars.size(); ++j)
     {
         if(both_above(context_scalars[j], s))
             ++ucc;
