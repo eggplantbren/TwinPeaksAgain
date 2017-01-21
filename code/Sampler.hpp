@@ -75,8 +75,10 @@ class Sampler
 };
 
 
+/*************************************************/
+/*           IMPLEMENTATIONS BELOW               */
+/*************************************************/
 
-/* IMPLEMENTATIONS BELOW */
 template<class ParticleType>
 Sampler<ParticleType>::Sampler(size_t num_particles)
 :particles(num_particles)
