@@ -72,6 +72,11 @@ class Sampler
         // Find the worst particle and return its index.
         size_t find_worst() const;
 
+        // Replace the given particle with one above the given threshold
+        void replace_particle(size_t which_particle,
+                              const std::tuple<size_t, double>& threshold,
+                              RNG& rng);
+
 };
 
 
@@ -148,6 +153,20 @@ void Sampler<ParticleType>::do_iteration(RNG& rng)
     fout<<std::get<0>(worst_scalars)<<' ';
     fout<<std::get<1>(worst_scalars)<<std::endl;
     fout.close();
+
+    // Generate replacement particle
+    replace_particle(worst,
+                     {uccs[worst], ucc_tiebreakers[worst]},
+                     rng);
+}
+
+template<class ParticleType>
+void Sampler<ParticleType>::replace_particle
+                             (size_t which_particle,
+                              const std::tuple<size_t, double>& threshold,
+                              RNG& rng)
+{
+
 }
 
 template<class ParticleType>
