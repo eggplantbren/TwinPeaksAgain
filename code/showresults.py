@@ -1,9 +1,8 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-output = np.loadtxt("output.txt")
+output = np.loadtxt("sample_info.txt")
 
-plt.scatter(output[:,0], output[:,1], color="g", marker="o", s=output[:,2],
-                alpha=0.2)
+plt.plot(output[:,1], output[:,2], "k.", alpha=0.2)
 plt.show()
 

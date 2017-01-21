@@ -143,6 +143,9 @@ void Sampler<ParticleType>::do_iteration(RNG& rng)
     // Increment iteration
     ++iteration;
 
+    // Print message
+    std::cout<<"# Iteration "<<iteration<<". ";
+
     // Find the worst particle.
     size_t worst = find_worst();
     auto worst_scalars = scalars[worst];
@@ -155,9 +158,11 @@ void Sampler<ParticleType>::do_iteration(RNG& rng)
     fout.close();
 
     // Generate replacement particle
+    std::cout<<"Generating replacement particle..."<<std::flush;
     replace_particle(worst,
                      {uccs[worst], ucc_tiebreakers[worst]},
                      rng);
+    std::cout<<"done."<<std::endl;
 }
 
 template<class ParticleType>
@@ -166,7 +171,52 @@ void Sampler<ParticleType>::replace_particle
                               const std::tuple<size_t, double>& threshold,
                               RNG& rng)
 {
+    // Copy a survivor
+    if(particles.size() > 1)
+    {
+        size_t copy;
+        do
+        {
+            copy = rng.rand_int(particles.size());
+        }while(copy == which_particle);
 
+        particles[which_particle] = particles[copy];
+        scalars[which_particle] = scalars[copy];
+        uccs[which_particle] = uccs[copy];
+        ucc_tiebreakers[which_particle] = ucc_tiebreakers[copy];
+    }
+
+    // Threshold, smooshed together
+    double thresh = std::get<0>(threshold) + std::get<1>(threshold);
+
+    // Do MCMC steps
+    constexpr unsigned int mcmc_steps = 1000;
+    unsigned int accepted = 0;
+    for(unsigned int i=0; i<mcmc_steps; ++i)
+    {
+        // Generate proposal
+        ParticleType proposal = particles[which_particle];
+        double logH = proposal.perturb(rng);
+        double proposal_ucc_tiebreaker = ucc_tiebreakers[which_particle]
+                                                            + rng.randh();
+        wrap(proposal_ucc_tiebreaker, 0.0, 1.0);
+
+        // Evaluate proposal
+        auto proposal_scalars = proposal.get_scalars();
+        size_t proposal_ucc = calculate_ucc(proposal_scalars);
+        double ucc_smooshed = proposal_ucc + proposal_ucc_tiebreaker;
+
+        // Accept?
+        if(ucc_smooshed < thresh && rng.rand() <= exp(logH))
+        {
+            particles[which_particle] = proposal;
+            scalars[which_particle] = proposal_scalars;
+            uccs[which_particle] = proposal_ucc;
+            ucc_tiebreakers[which_particle] = proposal_ucc_tiebreaker;
+            ++accepted;
+        }
+    }
+    std::cout<<"accepted "<<accepted<<'/'<<mcmc_steps<<"...";
 }
 
 template<class ParticleType>
