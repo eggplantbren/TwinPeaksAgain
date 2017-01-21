@@ -1,6 +1,7 @@
 #ifndef TwinPeaks_Sampler
 #define TwinPeaks_Sampler
 
+#include <iostream>
 #include <stdexcept>
 #include <stdlib.h>     // For size_t
 #include <vector>
@@ -24,7 +25,7 @@ class Sampler
         const size_t num_particles;
 
         // The particles
-        std::vector<double> particles;
+        std::vector<ParticleType> particles;
 
         // Flag for whether the Sampler is ready to go.
         bool initialised;
@@ -56,10 +57,14 @@ Sampler<ParticleType>::Sampler(size_t num_particles)
 template<class ParticleType>
 void Sampler<ParticleType>::initialise(RNG& rng)
 {
+    std::cout<<"# Generating "<<num_particles<<" particles from the prior...";
+    std::cout<<std::flush;
+
     for(ParticleType& particle: particles)
         particle.from_prior(rng);
 
     initialised = true;
+    std::cout<<"done."<<std::endl;
 }
 
 } // namespace TwinPeaks
