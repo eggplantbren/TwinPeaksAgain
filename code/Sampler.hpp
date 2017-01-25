@@ -45,6 +45,7 @@ class Sampler
         // Ranks and rank map
         std::vector<std::tuple<size_t, size_t>> ranks;
         std::vector<std::vector<size_t>> rank_map;
+        std::vector<std::tuple<size_t, size_t>> sort_indices;
 
 
     public:
@@ -69,6 +70,9 @@ class Sampler
 
         // compute rank map
         void compute_rank_map();
+
+        // Argsorts
+        void compute_sort_indices();
 
         // Replace the given particle
         unsigned int replace_particle(size_t which_particle, RNG& rng);
@@ -126,6 +130,7 @@ void Sampler<ParticleType>::do_iteration(RNG& rng)
     // Ranks and rank map
     compute_ranks();
     compute_rank_map();
+    compute_sort_indices();
 
     for(size_t i=0; i<particles.size(); ++i)
     {
@@ -234,6 +239,25 @@ void Sampler<ParticleType>::compute_rank_map()
         std::tie(i, j) = rank;
         rank_map[n-j-1][i] = 1;
     }
+}
+
+template<class ParticleType>
+void Sampler<ParticleType>::compute_sort_indices()
+{
+    // Unzip scalars into parallel arrays
+    std::vector<double> s1(scalars.size());
+    std::vector<double> s2(scalars.size());
+    for(size_t i=0; i<scalars.size(); ++i)
+        std::tie(s1[i], s2[i]) = scalars[i];
+
+    // Argsort by each scalar
+    auto i1 = argsort(s1);
+    auto i2 = argsort(s2);
+
+    // Zip
+    sort_indices = std::vector<std::tuple<size_t, size_t>>(scalars.size());
+    for(size_t i=0; i<scalars.size(); ++i)
+        sort_indices[i] = {i1[i], i2[i]};
 }
 
 } // namespace TwinPeaks
