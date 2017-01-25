@@ -15,19 +15,19 @@ namespace TwinPeaks
 class Context
 {
     private:
-        // The context points
-        // Using a list; recently added points stored at the front.
-        std::list<std::tuple<double, double>> points;
+        // The forbidden rectangles
+        // Using a list; most recent ones stored at the front.
+        std::list<std::tuple<double, double>> rectangles;
 
     public:
         // Constructor; starts with zero points
         Context();
 
         // Add the given point to the context.
-        void add_point(const std::tuple<double, double>& new_point);
+        void add_rectangle(const std::tuple<double, double>& new_rectangle);
 
-        // Calculate an UCC
-        size_t calculate_ucc(const std::tuple<double, double>& x) const;
+        // Is the given point okay?
+        bool is_okay(const std::tuple<double, double>& point) const;
 };
 
 } // namespace TwinPeaks

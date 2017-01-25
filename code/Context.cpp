@@ -8,22 +8,28 @@ Context::Context()
 
 }
 
-void Context::add_point(const std::tuple<double, double>& new_point)
+void Context::add_rectangle(const std::tuple<double, double>& new_rectangle)
 {
-    points.push_front(new_point);
+    rectangles.push_front(new_rectangle);
 }
 
-size_t Context::calculate_ucc(const std::tuple<double, double>& x) const
+bool Context::is_okay(const std::tuple<double, double>& point) const
 {
-    size_t ucc = 0;
+    double x, y, x_rect, y_rect;
 
-    for(auto it = points.begin(); it != points.end(); ++it)
+    // Unpack the given point
+    std::tie(x, y) = point;
+
+    for(auto it = rectangles.begin(); it != rectangles.end(); ++it)
     {
-        if(both_above(*it, x))
-            ++ucc;
+        // Unpack rectangle coordinates
+        std::tie(x_rect, y_rect) = *it;
+
+        if(x < x_rect || y < y_rect)
+            return false;
     }
 
-    return ucc;
+    return true;
 }
 
 } // namespace TwinPeaks
