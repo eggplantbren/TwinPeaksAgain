@@ -42,6 +42,11 @@ class Sampler
         // Keep track of remaining mass
         double log_mass;
 
+        // Ranks and rank map
+        std::vector<std::tuple<size_t, size_t>> ranks;
+        std::vector<std::vector<size_t>> rank_map;
+
+
     public:
         // Constructor. You must specify the number of particles.
         Sampler(size_t num_particles);
@@ -59,11 +64,11 @@ class Sampler
     /***** Private helper functions *****/
     private:
 
-        // Get all the ranks
-        std::vector<std::tuple<size_t, size_t>> compute_ranks() const;
+        // compute ranks
+        void compute_ranks();
 
-        // Rank map
-        std::vector<std::vector<size_t>> compute_rank_map() const;
+        // compute rank map
+        void compute_rank_map();
 
         // Replace the given particle
         unsigned int replace_particle(size_t which_particle, RNG& rng);
@@ -118,8 +123,10 @@ void Sampler<ParticleType>::do_iteration(RNG& rng)
     // Print message
 //    std::cout<<"# Iteration "<<iteration<<". ";
 
-    // Rank map
-    auto rank_map = compute_rank_map();
+    // Ranks and rank map
+    compute_ranks();
+    compute_rank_map();
+
     for(size_t i=0; i<particles.size(); ++i)
     {
         for(size_t j=0; j<particles.size(); ++j)
@@ -194,8 +201,7 @@ unsigned int Sampler<ParticleType>::
 }
 
 template<class ParticleType>
-std::vector<std::tuple<size_t, size_t>>
-        Sampler<ParticleType>::compute_ranks() const
+void Sampler<ParticleType>::compute_ranks()
 {
     // Unzip scalars into parallel arrays
     std::vector<double> s1(scalars.size());
@@ -205,35 +211,29 @@ std::vector<std::tuple<size_t, size_t>>
         std::tie(s1[i], s2[i]) = scalars[i];
 
     // Find ranks
-    auto r1 = ranks(s1);
-    auto r2 = ranks(s2);
+    auto r1 = rank(s1);
+    auto r2 = rank(s2);
 
     // Zip ranks
-    std::vector<std::tuple<size_t, size_t>> r(scalars.size());
+    ranks = std::vector<std::tuple<size_t, size_t>>(scalars.size());
     for(size_t i=0; i<scalars.size(); ++i)
-        r[i] = {r1[i], r2[i]};
-    return r;
+        ranks[i] = {r1[i], r2[i]};
 }
 
 template<class ParticleType>
-std::vector<std::vector<size_t>> Sampler<ParticleType>::compute_rank_map() const
+void Sampler<ParticleType>::compute_rank_map()
 {
     // Array of zeros
     size_t n = particles.size();
-    std::vector<std::vector<size_t>> result(n, std::vector<size_t>(n, 0));
-
-    // Need the ranks
-    auto ranks = compute_ranks();
+    rank_map = std::vector<std::vector<size_t>>(n, std::vector<size_t>(n, 0));
 
     // Put the ones in the array
     size_t i, j;
     for(const auto& rank: ranks)
     {
         std::tie(i, j) = rank;
-        result[n-j-1][i] = 1;
+        rank_map[n-j-1][i] = 1;
     }
-
-    return result;
 }
 
 } // namespace TwinPeaks

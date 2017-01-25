@@ -43,7 +43,7 @@ std::vector<size_t> argsort(const std::vector<T>& v)
 
 // Calculate ranks
 template <typename T>
-std::vector<size_t> ranks(const std::vector<T>& v)
+std::vector<size_t> rank(const std::vector<T>& v)
 {
 	// initialize original index locations
 	std::vector<size_t> ii = argsort(v);
