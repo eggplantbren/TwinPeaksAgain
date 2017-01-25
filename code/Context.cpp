@@ -25,7 +25,7 @@ bool Context::is_okay(const std::tuple<double, double>& point) const
         // Unpack rectangle coordinates
         std::tie(x_rect, y_rect) = *it;
 
-        if(x < x_rect || y < y_rect)
+        if(x < x_rect && y < y_rect)
             return false;
     }
 

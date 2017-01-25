@@ -30,11 +30,7 @@ class Sampler
         // The scalars of the particles
         std::vector<std::tuple<double, double>> scalars;
 
-        // The uccs of the particles, and tiebreakers
-        std::vector<size_t> uccs;
-        std::vector<double> ucc_tiebreakers;
-
-        // The context points
+        // The context
         Context context;
 
         // Flag for whether the Sampler is ready to go.
@@ -56,27 +52,15 @@ class Sampler
         // Some getters
         const std::vector<std::tuple<double, double>> get_scalars()
         { return scalars; }
-        const std::vector<size_t> get_uccs() const
-        { return uccs; }
-
 
     /***** Private helper functions *****/
     private:
 
-        // Calculate the ucc wrt the context scalars
-        size_t calculate_ucc(const std::tuple<double, double>& s) const;
+        // Find the worst two particles in terms of first scalar.
+        std::tuple<size_t, size_t> find_worst() const;
 
-        // Calculate uccs of all particles
-        void calculate_uccs();
-
-        // Find the worst particle and return its index.
-        size_t find_worst() const;
-
-        // Replace the given particle with one above the given threshold
-        void replace_particle(size_t which_particle,
-                              const std::tuple<size_t, double>& threshold,
-                              RNG& rng);
-
+        // Replace the given particle
+        void replace_particle(size_t which_particle, RNG& rng);
 };
 
 
@@ -88,8 +72,6 @@ template<class ParticleType>
 Sampler<ParticleType>::Sampler(size_t num_particles)
 :particles(num_particles)
 ,scalars(num_particles)
-,uccs(num_particles)
-,ucc_tiebreakers(num_particles)
 ,context()
 ,initialised(false)
 ,iteration(0)
@@ -112,22 +94,6 @@ void Sampler<ParticleType>::initialise(RNG& rng)
     }
     std::cout<<"done."<<std::endl;
 
-    // Generate the context points
-    std::cout<<"# Generating context...";
-    std::cout<<std::flush;
-    for(size_t i=0; i<particles.size(); ++i)
-    {
-        ParticleType p;
-        p.from_prior(rng);
-        context.add_point(p.get_scalars());
-    }
-    std::cout<<"done."<<std::endl;
-
-    // Calculate the uccs and generate tiebreakers
-    calculate_uccs();
-    for(double& tb: ucc_tiebreakers)
-        tb = rng.rand();
-
     // Clear output file
     std::fstream fout("sample_info.txt", std::ios::out);
     fout.close();
@@ -146,29 +112,24 @@ void Sampler<ParticleType>::do_iteration(RNG& rng)
     std::cout<<"# Iteration "<<iteration<<". ";
 
     // Find the worst particle.
-    size_t worst = find_worst();
-    auto worst_scalars = scalars[worst];
+    std::tuple<size_t, size_t> worst = find_worst();
+//    auto worst_scalars = scalars[worst];
 
     // Write out iteration and worst particle's scalars.
     std::fstream fout("sample_info.txt", std::ios::out | std::ios::app);
     fout<<iteration<<' ';
-    fout<<std::get<0>(worst_scalars)<<' ';
-    fout<<std::get<1>(worst_scalars)<<std::endl;
+//    fout<<std::get<0>(worst_scalars)<<' ';
+//    fout<<std::get<1>(worst_scalars)<<std::endl;
     fout.close();
 
     // Generate replacement particle
     std::cout<<"Generating replacement particle..."<<std::flush;
-    replace_particle(worst,
-                     {uccs[worst], ucc_tiebreakers[worst]},
-                     rng);
+//    replace_particle(worst, rng);
     std::cout<<"done."<<std::endl;
 }
 
 template<class ParticleType>
-void Sampler<ParticleType>::replace_particle
-                             (size_t which_particle,
-                              const std::tuple<size_t, double>& threshold,
-                              RNG& rng)
+void Sampler<ParticleType>::replace_particle(size_t which_particle, RNG& rng)
 {
     // Copy a survivor
     if(particles.size() > 1)
@@ -181,12 +142,7 @@ void Sampler<ParticleType>::replace_particle
 
         particles[which_particle] = particles[copy];
         scalars[which_particle] = scalars[copy];
-        uccs[which_particle] = uccs[copy];
-        ucc_tiebreakers[which_particle] = ucc_tiebreakers[copy];
     }
-
-    // Threshold, smooshed together
-    double thresh = std::get<0>(threshold) + std::get<1>(threshold);
 
     // Do MCMC steps
     constexpr unsigned int mcmc_steps = 1000;
@@ -196,22 +152,15 @@ void Sampler<ParticleType>::replace_particle
         // Generate proposal
         ParticleType proposal = particles[which_particle];
         double logH = proposal.perturb(rng);
-        double proposal_ucc_tiebreaker = ucc_tiebreakers[which_particle]
-                                                            + rng.randh();
-        wrap(proposal_ucc_tiebreaker, 0.0, 1.0);
 
         // Evaluate proposal
         auto proposal_scalars = proposal.get_scalars();
-        size_t proposal_ucc = context.calculate_ucc(proposal_scalars);
-        double ucc_smooshed = proposal_ucc + proposal_ucc_tiebreaker;
 
         // Accept?
-        if(ucc_smooshed < thresh && rng.rand() <= exp(logH))
+        if(context.is_okay(proposal_scalars) && rng.rand() <= exp(logH))
         {
             particles[which_particle] = proposal;
             scalars[which_particle] = proposal_scalars;
-            uccs[which_particle] = proposal_ucc;
-            ucc_tiebreakers[which_particle] = proposal_ucc_tiebreaker;
             ++accepted;
         }
     }
@@ -219,30 +168,17 @@ void Sampler<ParticleType>::replace_particle
 }
 
 template<class ParticleType>
-void Sampler<ParticleType>::calculate_uccs()
+std::tuple<size_t, size_t> Sampler<ParticleType>::find_worst() const
 {
-    for(size_t i=0; i<particles.size(); ++i)
-        uccs[i] = context.calculate_ucc(scalars[i]);
-}
+    // Vector of values of scalar 1
+    std::vector<double> s(scalars.size());
+    for(size_t i=0; i<scalars.size(); ++i)
+        s[i] = std::get<0>(scalars[i]);
 
-template<class ParticleType>
-size_t Sampler<ParticleType>::find_worst() const
-{
-    // Worst particle found so far
-    size_t worst_index = 0;
-    double worst_value = uccs[worst_index] + ucc_tiebreakers[worst_index];
+    // Argsort
+    auto ii = argsort(s);
 
-    for(size_t i=1; i<particles.size(); ++i)
-    {
-        double current_value = uccs[i] + ucc_tiebreakers[i];
-        if(current_value > worst_value)
-        {
-            worst_index = i;
-            worst_value = current_value;
-        }
-    }
-
-    return worst_index;
+    return {ii[0], ii[1]};
 }
 
 } // namespace TwinPeaks
