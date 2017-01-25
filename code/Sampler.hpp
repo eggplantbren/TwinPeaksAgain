@@ -39,6 +39,9 @@ class Sampler
         // Iteration counter
         unsigned int iteration;
 
+        // Keep track of remaining mass
+        double log_mass;
+
     public:
         // Constructor. You must specify the number of particles.
         Sampler(size_t num_particles);
@@ -57,10 +60,10 @@ class Sampler
     private:
 
         // Find the worst two particles in terms of first scalar.
-        std::tuple<size_t, size_t> find_worst() const;
+        std::tuple<size_t, size_t> find_worst_two() const;
 
         // Replace the given particle
-        void replace_particle(size_t which_particle, RNG& rng);
+        unsigned int replace_particle(size_t which_particle, RNG& rng);
 };
 
 
@@ -75,6 +78,7 @@ Sampler<ParticleType>::Sampler(size_t num_particles)
 ,context()
 ,initialised(false)
 ,iteration(0)
+,log_mass(0.0)
 {
     if(num_particles == 0)
         throw std::invalid_argument("Invalid number of particles.");
@@ -111,25 +115,36 @@ void Sampler<ParticleType>::do_iteration(RNG& rng)
     // Print message
     std::cout<<"# Iteration "<<iteration<<". ";
 
-    // Find the worst particle.
-    std::tuple<size_t, size_t> worst = find_worst();
-//    auto worst_scalars = scalars[worst];
+    // Find the worst two particles in terms of first scalar.
+    size_t i1, i2;
+    std::tie(i1, i2) = find_worst_two();
 
-    // Write out iteration and worst particle's scalars.
+    // Extract scalars
+    double x1, y1, x2, y2;
+    std::tie(x1, y1) = scalars[i1];
+    std::tie(x2, y2) = scalars[i2];
+
+    // Write out particle information.
     std::fstream fout("sample_info.txt", std::ios::out | std::ios::app);
-    fout<<iteration<<' ';
-//    fout<<std::get<0>(worst_scalars)<<' ';
-//    fout<<std::get<1>(worst_scalars)<<std::endl;
+    fout<<iteration<<' '<<log_mass<<' ';
+    fout<<x1<<' '<<y1<<std::endl;
     fout.close();
 
-    // Generate replacement particle
-    std::cout<<"Generating replacement particle..."<<std::flush;
-//    replace_particle(worst, rng);
+    // Add to Context
+    context.add_rectangle({x2, y1});
+
+    // Generate replacement particles
+    std::cout<<"Generating replacement particles..."<<std::flush;
+    unsigned int accepts = 0;
+    accepts += replace_particle(i1, rng);
+    accepts += replace_particle(i2, rng);
+    std::cout<<"accepted "<<accepts<<"/1000...";
     std::cout<<"done."<<std::endl;
 }
 
 template<class ParticleType>
-void Sampler<ParticleType>::replace_particle(size_t which_particle, RNG& rng)
+unsigned int Sampler<ParticleType>::
+                    replace_particle(size_t which_particle, RNG& rng)
 {
     // Copy a survivor
     if(particles.size() > 1)
@@ -147,7 +162,7 @@ void Sampler<ParticleType>::replace_particle(size_t which_particle, RNG& rng)
     // Do MCMC steps
     constexpr unsigned int mcmc_steps = 1000;
     unsigned int accepted = 0;
-    for(unsigned int i=0; i<mcmc_steps; ++i)
+    for(unsigned int i=0; i<mcmc_steps/2; ++i)
     {
         // Generate proposal
         ParticleType proposal = particles[which_particle];
@@ -164,11 +179,12 @@ void Sampler<ParticleType>::replace_particle(size_t which_particle, RNG& rng)
             ++accepted;
         }
     }
-    std::cout<<"accepted "<<accepted<<'/'<<mcmc_steps<<"...";
+
+    return accepted;
 }
 
 template<class ParticleType>
-std::tuple<size_t, size_t> Sampler<ParticleType>::find_worst() const
+std::tuple<size_t, size_t> Sampler<ParticleType>::find_worst_two() const
 {
     // Vector of values of scalar 1
     std::vector<double> s(scalars.size());

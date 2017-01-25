@@ -15,7 +15,7 @@ int main()
     sampler.initialise(rng);
 
     // Do some iterations.
-    for(int i=0; i<1000; ++i)
+    for(int i=0; i<100000; ++i)
         sampler.do_iteration(rng);
 
     return 0;
