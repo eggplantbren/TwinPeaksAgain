@@ -59,8 +59,8 @@ class Sampler
     /***** Private helper functions *****/
     private:
 
-        // Find the worst two particles in terms of first scalar.
-        std::tuple<size_t, size_t> find_worst_two() const;
+        // Find the worst two particles in terms of the chosen scalar.
+        std::tuple<size_t, size_t> find_worst_two(size_t scalar) const;
 
         // Replace the given particle
         unsigned int replace_particle(size_t which_particle, RNG& rng);
@@ -115,9 +115,12 @@ void Sampler<ParticleType>::do_iteration(RNG& rng)
     // Print message
     std::cout<<"# Iteration "<<iteration<<". ";
 
-    // Find the worst two particles in terms of first scalar.
+    // Choose a scalar
+    size_t scalar = rng.rand_int(2);
+
+    // Find the worst two particles in terms of that scalar.
     size_t i1, i2;
-    std::tie(i1, i2) = find_worst_two();
+    std::tie(i1, i2) = find_worst_two(scalar);
 
     // Extract scalars
     double x1, y1, x2, y2;
@@ -131,14 +134,20 @@ void Sampler<ParticleType>::do_iteration(RNG& rng)
     fout.close();
 
     // Add to Context
-    context.add_rectangle({x2, y1});
+    if(scalar == 0)
+        context.add_rectangle({x2, y1});
+    else
+        context.add_rectangle({x1, y2});
+
+    // Decrement remaining mass
+    log_mass -= 1.0/particles.size();
 
     // Generate replacement particles
     std::cout<<"Generating replacement particles..."<<std::flush;
     unsigned int accepts = 0;
     accepts += replace_particle(i1, rng);
     accepts += replace_particle(i2, rng);
-    std::cout<<"accepted "<<accepts<<"/1000...";
+    std::cout<<"accepted "<<accepts<<"/10000...";
     std::cout<<"done."<<std::endl;
 }
 
@@ -160,7 +169,7 @@ unsigned int Sampler<ParticleType>::
     }
 
     // Do MCMC steps
-    constexpr unsigned int mcmc_steps = 1000;
+    constexpr unsigned int mcmc_steps = 10000;
     unsigned int accepted = 0;
     for(unsigned int i=0; i<mcmc_steps/2; ++i)
     {
@@ -184,12 +193,21 @@ unsigned int Sampler<ParticleType>::
 }
 
 template<class ParticleType>
-std::tuple<size_t, size_t> Sampler<ParticleType>::find_worst_two() const
+std::tuple<size_t, size_t> Sampler<ParticleType>::
+                    find_worst_two(size_t scalar) const
 {
-    // Vector of values of scalar 1
+    if(scalar != 0 && scalar != 1)
+        throw std::invalid_argument("Invalid argument to find_worst_two.");
+
+    // Vector of values of the chosen scalar
     std::vector<double> s(scalars.size());
+
+    double x, y;
     for(size_t i=0; i<scalars.size(); ++i)
-        s[i] = std::get<0>(scalars[i]);
+    {
+        std::tie(x, y) = scalars[i];
+        s[i] = (scalar == 0) ? (x) : (y);
+    }
 
     // Argsort
     auto ii = argsort(s);

@@ -5,7 +5,7 @@ namespace TwinPeaks
 {
 
 SimpleExample::SimpleExample()
-:xs(100)
+:xs(2)
 {
 
 }
@@ -40,11 +40,14 @@ std::tuple<double, double> SimpleExample::get_scalars() const
     double s1 = 0.0;
     double s2 = 0.0;
 
-    for(double x: xs)
-    {
-        s1 += -0.5*pow(x - 0.5, 2);
-        s2 += -std::abs(x);
-    }
+    s1 = xs[0];
+    s2 = xs[1];
+
+//    for(double x: xs)
+//    {
+//        s1 += x[0];
+//        s2 += x[1];
+//    }
 
     return {s1, s2};
 }
