@@ -59,8 +59,11 @@ class Sampler
     /***** Private helper functions *****/
     private:
 
-        // Find the worst two particles in terms of the chosen scalar.
-        std::tuple<size_t, size_t> find_worst_two(size_t scalar) const;
+        // Get all the ranks
+        std::vector<std::tuple<size_t, size_t>> compute_ranks() const;
+
+        // Rank map
+        std::vector<std::vector<size_t>> compute_rank_map() const;
 
         // Replace the given particle
         unsigned int replace_particle(size_t which_particle, RNG& rng);
@@ -113,42 +116,40 @@ void Sampler<ParticleType>::do_iteration(RNG& rng)
     ++iteration;
 
     // Print message
-    std::cout<<"# Iteration "<<iteration<<". ";
+//    std::cout<<"# Iteration "<<iteration<<". ";
 
-    // Choose a scalar
-    size_t scalar = rng.rand_int(2);
+    // Rank map
+    auto rank_map = compute_rank_map();
+    for(size_t i=0; i<particles.size(); ++i)
+    {
+        for(size_t j=0; j<particles.size(); ++j)
+            std::cout<<rank_map[i][j]<<' ';
+        std::cout<<'\n';
+    }
+    exit(0);
 
-    // Find the worst two particles in terms of that scalar.
-    size_t i1, i2;
-    std::tie(i1, i2) = find_worst_two(scalar);
+//    // Write out particle information.
+//    std::fstream fout("sample_info.txt", std::ios::out | std::ios::app);
+//    fout<<iteration<<' '<<log_mass<<' ';
+//    fout<<x1<<' '<<y1<<std::endl;
+//    fout.close();
 
-    // Extract scalars
-    double x1, y1, x2, y2;
-    std::tie(x1, y1) = scalars[i1];
-    std::tie(x2, y2) = scalars[i2];
+//    // Add to Context
+//    if(scalar == 0)
+//        context.add_rectangle({x2, y1});
+//    else
+//        context.add_rectangle({x1, y2});
 
-    // Write out particle information.
-    std::fstream fout("sample_info.txt", std::ios::out | std::ios::app);
-    fout<<iteration<<' '<<log_mass<<' ';
-    fout<<x1<<' '<<y1<<std::endl;
-    fout.close();
+//    // Decrement remaining mass
+//    log_mass -= 1.0/particles.size();
 
-    // Add to Context
-    if(scalar == 0)
-        context.add_rectangle({x2, y1});
-    else
-        context.add_rectangle({x1, y2});
-
-    // Decrement remaining mass
-    log_mass -= 1.0/particles.size();
-
-    // Generate replacement particles
-    std::cout<<"Generating replacement particles..."<<std::flush;
-    unsigned int accepts = 0;
-    accepts += replace_particle(i1, rng);
-    accepts += replace_particle(i2, rng);
-    std::cout<<"accepted "<<accepts<<"/10000...";
-    std::cout<<"done."<<std::endl;
+//    // Generate replacement particles
+//    std::cout<<"Generating replacement particles..."<<std::flush;
+//    unsigned int accepts = 0;
+//    accepts += replace_particle(i1, rng);
+//    accepts += replace_particle(i2, rng);
+//    std::cout<<"accepted "<<accepts<<"/10000...";
+//    std::cout<<"done."<<std::endl;
 }
 
 template<class ParticleType>
@@ -193,26 +194,46 @@ unsigned int Sampler<ParticleType>::
 }
 
 template<class ParticleType>
-std::tuple<size_t, size_t> Sampler<ParticleType>::
-                    find_worst_two(size_t scalar) const
+std::vector<std::tuple<size_t, size_t>>
+        Sampler<ParticleType>::compute_ranks() const
 {
-    if(scalar != 0 && scalar != 1)
-        throw std::invalid_argument("Invalid argument to find_worst_two.");
+    // Unzip scalars into parallel arrays
+    std::vector<double> s1(scalars.size());
+    std::vector<double> s2(scalars.size());
 
-    // Vector of values of the chosen scalar
-    std::vector<double> s(scalars.size());
-
-    double x, y;
     for(size_t i=0; i<scalars.size(); ++i)
+        std::tie(s1[i], s2[i]) = scalars[i];
+
+    // Find ranks
+    auto r1 = ranks(s1);
+    auto r2 = ranks(s2);
+
+    // Zip ranks
+    std::vector<std::tuple<size_t, size_t>> r(scalars.size());
+    for(size_t i=0; i<scalars.size(); ++i)
+        r[i] = {r1[i], r2[i]};
+    return r;
+}
+
+template<class ParticleType>
+std::vector<std::vector<size_t>> Sampler<ParticleType>::compute_rank_map() const
+{
+    // Array of zeros
+    size_t n = particles.size();
+    std::vector<std::vector<size_t>> result(n, std::vector<size_t>(n, 0));
+
+    // Need the ranks
+    auto ranks = compute_ranks();
+
+    // Put the ones in the array
+    size_t i, j;
+    for(const auto& rank: ranks)
     {
-        std::tie(x, y) = scalars[i];
-        s[i] = (scalar == 0) ? (x) : (y);
+        std::tie(i, j) = rank;
+        result[n-j-1][i] = 1;
     }
 
-    // Argsort
-    auto ii = argsort(s);
-
-    return {ii[0], ii[1]};
+    return result;
 }
 
 } // namespace TwinPeaks
