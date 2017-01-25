@@ -28,7 +28,8 @@ class Sampler
         std::vector<ParticleType> particles;
 
         // The scalars of the particles
-        std::vector<std::tuple<double, double>> scalars;
+        std::vector<double> scalars1;
+        std::vector<double> scalars2;
 
         // The context
         Context context;
@@ -42,10 +43,9 @@ class Sampler
         // Keep track of remaining mass
         double log_mass;
 
-        // Ranks and rank map
-        std::vector<std::tuple<size_t, size_t>> ranks;
-        std::vector<std::vector<size_t>> rank_map;
-        std::vector<std::tuple<size_t, size_t>> sort_indices;
+        // Argsort results
+        std::vector<size_t> indices1;
+        std::vector<size_t> indices2;
 
 
     public:
@@ -57,10 +57,6 @@ class Sampler
 
         // Do a single NS iteration
         void do_iteration(RNG& rng);
-
-        // Some getters
-        const std::vector<std::tuple<double, double>> get_scalars()
-        { return scalars; }
 
     /***** Private helper functions *****/
     private:
@@ -86,7 +82,8 @@ class Sampler
 template<class ParticleType>
 Sampler<ParticleType>::Sampler(size_t num_particles)
 :particles(num_particles)
-,scalars(num_particles)
+,scalars1(num_particles)
+,scalars2(num_particles)
 ,context()
 ,initialised(false)
 ,iteration(0)
@@ -106,7 +103,7 @@ void Sampler<ParticleType>::initialise(RNG& rng)
     for(size_t i=0; i<particles.size(); ++i)
     {
         particles[i].from_prior(rng);
-        scalars[i] = particles[i].get_scalars();
+        std::tie(scalars1[i], scalars2[i]) = particles[i].get_scalars();
     }
     std::cout<<"done."<<std::endl;
 
@@ -128,16 +125,17 @@ void Sampler<ParticleType>::do_iteration(RNG& rng)
 //    std::cout<<"# Iteration "<<iteration<<". ";
 
     // Ranks and rank map
-    compute_ranks();
-    compute_rank_map();
     compute_sort_indices();
 
+    // Print all the particles' scalars
     for(size_t i=0; i<particles.size(); ++i)
     {
-        for(size_t j=0; j<particles.size(); ++j)
-            std::cout<<rank_map[i][j]<<' ';
-        std::cout<<'\n';
+        std::cout<<scalars1[i]<<' '<<scalars2[i]<<std::endl;
     }
+    std::cout<<'\n';
+    std::cout<<"Worst s1 = "<<scalars1[indices1[0]]<<'\n';
+    std::cout<<"Worst s2 = "<<scalars2[indices2[0]]<<std::endl;
+
     exit(0);
 
 //    // Write out particle information.
@@ -178,7 +176,8 @@ unsigned int Sampler<ParticleType>::
         }while(copy == which_particle);
 
         particles[which_particle] = particles[copy];
-        scalars[which_particle] = scalars[copy];
+        scalars1[which_particle] = scalars1[copy];
+        scalars2[which_particle] = scalars2[copy];
     }
 
     // Do MCMC steps
@@ -197,7 +196,8 @@ unsigned int Sampler<ParticleType>::
         if(context.is_okay(proposal_scalars) && rng.rand() <= exp(logH))
         {
             particles[which_particle] = proposal;
-            scalars[which_particle] = proposal_scalars;
+            std::tie(scalars1[which_particle], scalars2[which_particle])
+                            = proposal_scalars;
             ++accepted;
         }
     }
@@ -206,58 +206,11 @@ unsigned int Sampler<ParticleType>::
 }
 
 template<class ParticleType>
-void Sampler<ParticleType>::compute_ranks()
-{
-    // Unzip scalars into parallel arrays
-    std::vector<double> s1(scalars.size());
-    std::vector<double> s2(scalars.size());
-
-    for(size_t i=0; i<scalars.size(); ++i)
-        std::tie(s1[i], s2[i]) = scalars[i];
-
-    // Find ranks
-    auto r1 = rank(s1);
-    auto r2 = rank(s2);
-
-    // Zip ranks
-    ranks = std::vector<std::tuple<size_t, size_t>>(scalars.size());
-    for(size_t i=0; i<scalars.size(); ++i)
-        ranks[i] = {r1[i], r2[i]};
-}
-
-template<class ParticleType>
-void Sampler<ParticleType>::compute_rank_map()
-{
-    // Array of zeros
-    size_t n = particles.size();
-    rank_map = std::vector<std::vector<size_t>>(n, std::vector<size_t>(n, 0));
-
-    // Put the ones in the array
-    size_t i, j;
-    for(const auto& rank: ranks)
-    {
-        std::tie(i, j) = rank;
-        rank_map[n-j-1][i] = 1;
-    }
-}
-
-template<class ParticleType>
 void Sampler<ParticleType>::compute_sort_indices()
 {
-    // Unzip scalars into parallel arrays
-    std::vector<double> s1(scalars.size());
-    std::vector<double> s2(scalars.size());
-    for(size_t i=0; i<scalars.size(); ++i)
-        std::tie(s1[i], s2[i]) = scalars[i];
-
     // Argsort by each scalar
-    auto i1 = argsort(s1);
-    auto i2 = argsort(s2);
-
-    // Zip
-    sort_indices = std::vector<std::tuple<size_t, size_t>>(scalars.size());
-    for(size_t i=0; i<scalars.size(); ++i)
-        sort_indices[i] = {i1[i], i2[i]};
+    indices1 = argsort(scalars1);
+    indices2 = argsort(scalars2);
 }
 
 } // namespace TwinPeaks
