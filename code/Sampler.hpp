@@ -129,13 +129,31 @@ void Sampler<ParticleType>::do_iteration(RNG& rng)
 
     // Print all the particles' scalars
     for(size_t i=0; i<particles.size(); ++i)
-    {
         std::cout<<scalars1[i]<<' '<<scalars2[i]<<std::endl;
-    }
-    std::cout<<'\n';
-    std::cout<<"Worst s1 = "<<scalars1[indices1[0]]<<'\n';
-    std::cout<<"Worst s2 = "<<scalars2[indices2[0]]<<std::endl;
 
+    // Crucial values
+    double x1, y1, x2, y2;
+    bool same_particle = indices1[0] == indices2[0];
+
+    // Lowest value of scalar 1
+    x1 = scalars1[indices1[0]];
+
+    // Lowest value of scalar 2
+    y2 = scalars2[indices2[0]];
+
+    y1 = (same_particle) ? (scalars2[indices2[1]]) : (y2);
+    x2 = (same_particle) ? (scalars1[indices1[1]]) : (x1);
+
+    std::cout<<x1<<' '<<y1<<std::endl;
+    std::cout<<x2<<' '<<y2<<std::endl;
+
+//    y2 = scalars2[indices2[0]];
+
+//    y1 = (the_same) ? (scalars2[indices2[1]]) : y2;
+//    x2 = (the_same) ? (scalars1[indices1[1]]) : x1;
+
+//    std::cout<<x1<<' '<<x2<<'\n';
+//    std::cout<<y1<<' '<<y2<<std::endl;
     exit(0);
 
 //    // Write out particle information.
