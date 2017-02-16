@@ -11,7 +11,7 @@ int main()
     TwinPeaks::RNG rng(time(0));
 
     // Create and initialise a Sampler
-    TwinPeaks::Sampler<TwinPeaks::SimpleExample> sampler(10);
+    TwinPeaks::Sampler<TwinPeaks::SimpleExample> sampler(1000);
     sampler.initialise(rng);
 
     // Do some iterations.

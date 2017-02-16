@@ -122,30 +122,51 @@ void Sampler<ParticleType>::do_iteration(RNG& rng)
     ++iteration;
 
     // Print message
-//    std::cout<<"# Iteration "<<iteration<<". ";
+    std::cout<<"# Iteration "<<iteration<<". ";
 
-    // Ranks and rank map
-    compute_sort_indices();
-
-    // Print all the particles' scalars
+    // Lower corner counts
+    std::vector<size_t> lccs(particles.size(), 0);
     for(size_t i=0; i<particles.size(); ++i)
-        std::cout<<scalars1[i]<<' '<<scalars2[i]<<std::endl;
+    {
+        for(size_t j=0; j<particles.size(); ++j)
+        {
+            if(scalars1[i] > scalars1[j] &&
+               scalars2[i] > scalars2[j])
+                ++lccs[i];
+        }
+    }
 
-    // Crucial values
-    double x1, y1, x2, y2;
-    bool same_particle = indices1[0] == indices2[0];
+    // Is there an LCC of 1?
+    bool one_exists = false;
+    for(auto lcc: lccs)
+        if(lcc == 1)
+        {
+            one_exists = true;
+            break;
+        }
+    if(!one_exists)
+        std::cerr << "OH NO!" << std::endl;
 
-    // Lowest value of scalar 1
-    x1 = scalars1[indices1[0]];
+    // Select a particle with an LCC of 1.
+    size_t which1;
+    do
+    {
+        which1 = rng.rand_int(particles.size());
+    }while(lccs[which1] != 1);
 
-    // Lowest value of scalar 2
-    y2 = scalars2[indices2[0]];
+    // Find the particle it casts a shadow over.
+    size_t which2;
+    for(size_t i=0; i<particles.size(); ++i)
+    {
+        if(scalars1[which1] > scalars1[i] &&
+           scalars2[which1] > scalars2[i])
+        {
+            which2 = i;
+            break;
+        }
+    }
 
-    y1 = (same_particle) ? (scalars2[indices2[1]]) : (y2);
-    x2 = (same_particle) ? (scalars1[indices1[1]]) : (x1);
-
-    std::cout<<x1<<' '<<y1<<std::endl;
-    std::cout<<x2<<' '<<y2<<std::endl;
+    std::cout<<which1<<' '<<which2<<std::endl;
 
 //    y2 = scalars2[indices2[0]];
 
