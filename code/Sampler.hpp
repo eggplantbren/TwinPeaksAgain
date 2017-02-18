@@ -156,6 +156,22 @@ void Sampler<ParticleType>::do_iteration(RNG& rng)
         which = rng.rand_int(particles.size());
     }while(lccs[which] != min_nonzero_lcc);
 
+    size_t key_scalar = (rng.rand() < 0.5) ? (1) : (2);
+    size_t other_scalar = (key_scalar == 1) ? (2) : (1);
+
+    // Which particles have lower value of the key scalar?
+    std::vector<size_t> lower_key_scalar;
+    const auto& s1 = (key_scalar == 1) ? (scalars1) : (scalars2);
+    for(size_t i=0; i<particles.size(); ++i)
+    {
+        if(s1[i] < s1[which])
+            lower_key_scalar.push_back(i);
+    }
+
+
+    for(auto x: lower_key_scalar)
+        std::cout << x << std::endl;
+
 //    // Find the particle it casts a shadow over.
 //    size_t which2;
 //    for(size_t i=0; i<particles.size(); ++i)
