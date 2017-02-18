@@ -136,37 +136,37 @@ void Sampler<ParticleType>::do_iteration(RNG& rng)
         }
     }
 
-    // Is there an LCC of 1?
-    bool one_exists = false;
-    for(auto lcc: lccs)
-        if(lcc == 1)
-        {
-            one_exists = true;
-            break;
-        }
-    if(!one_exists)
-        std::cerr << "OH NO!" << std::endl;
+    // Nonzero lccs
+    std::vector<size_t> nonzero_lccs;
+    for(size_t lcc: lccs)
+        if(lcc != 0)
+            nonzero_lccs.push_back(lcc);
 
-    // Select a particle with an LCC of 1.
-    size_t which1;
+    if(nonzero_lccs.size() == 0)
+        std::cerr << "# ERROR: No nonzero lccs." << std::endl;
+
+    // Minimum nonzero LCC
+    size_t min_nonzero_lcc = *min_element(nonzero_lccs.begin(),
+                                          nonzero_lccs.end());
+
+    // Select a particle with that LCC.
+    size_t which;
     do
     {
-        which1 = rng.rand_int(particles.size());
-    }while(lccs[which1] != 1);
+        which = rng.rand_int(particles.size());
+    }while(lccs[which] != min_nonzero_lcc);
 
-    // Find the particle it casts a shadow over.
-    size_t which2;
-    for(size_t i=0; i<particles.size(); ++i)
-    {
-        if(scalars1[which1] > scalars1[i] &&
-           scalars2[which1] > scalars2[i])
-        {
-            which2 = i;
-            break;
-        }
-    }
-
-    std::cout<<which1<<' '<<which2<<std::endl;
+//    // Find the particle it casts a shadow over.
+//    size_t which2;
+//    for(size_t i=0; i<particles.size(); ++i)
+//    {
+//        if(scalars1[which1] > scalars1[i] &&
+//           scalars2[which1] > scalars2[i])
+//        {
+//            which2 = i;
+//            break;
+//        }
+//    }
 
 //    y2 = scalars2[indices2[0]];
 
