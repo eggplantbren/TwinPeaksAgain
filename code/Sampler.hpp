@@ -124,97 +124,70 @@ void Sampler<ParticleType>::do_iteration(RNG& rng)
     // Print message
     std::cout<<"# Iteration "<<iteration<<". ";
 
-    // Lower corner counts
-    std::vector<size_t> lccs(particles.size(), 0);
+    // The two scalars
+    const std::vector<double>* x = nullptr;
+    const std::vector<double>* y = nullptr;
+    if(rng.rand() < 0.5)
+    {
+        x = &scalars1;
+        y = &scalars2;
+    }
+    else
+    {
+        x = &scalars2;
+        y = &scalars1;
+    }
+
+    // Argsort the scalars
+    std::vector<double> x_sorted = *x;
+    std::sort(x_sorted.begin(), x_sorted.end());
+
+    // Choose the particle to kill
+    size_t f = (size_t)sqrt(particles.size());
+    double x_crit = x_sorted[f];
+
+    // Lowest y | x < x_crit
+    size_t which;
+    bool flag = false;  // Have we encountered x < x_crit yet?
     for(size_t i=0; i<particles.size(); ++i)
     {
-        for(size_t j=0; j<particles.size(); ++j)
+        if((*x)[i] < x_crit)
         {
-            if(scalars1[i] > scalars1[j] &&
-               scalars2[i] > scalars2[j])
-                ++lccs[i];
+            if(flag)
+            {
+                if((*y)[i] < (*y)[which])
+                    which = i;
+            }
+            else
+            {
+                which = i;
+                flag = true;
+            }
         }
     }
+    double y_crit = (*y)[which];
 
-    // Nonzero lccs
-    std::vector<size_t> nonzero_lccs;
-    for(size_t lcc: lccs)
-        if(lcc != 0)
-            nonzero_lccs.push_back(lcc);
+    // Write out particle information.
+    std::fstream fout("sample_info.txt", std::ios::out | std::ios::app);
+    fout<<iteration<<' '<<log_mass<<' ';
+    fout<<scalars1[which]<<' '<<scalars2[which]<<std::endl;
+    fout.close();
 
-    if(nonzero_lccs.size() == 0)
-        std::cerr << "# ERROR: No nonzero lccs." << std::endl;
-
-    // Minimum nonzero LCC
-    size_t min_nonzero_lcc = *min_element(nonzero_lccs.begin(),
-                                          nonzero_lccs.end());
-
-    // Select a particle with that LCC.
-    size_t which;
-    do
-    {
-        which = rng.rand_int(particles.size());
-    }while(lccs[which] != min_nonzero_lcc);
-
-    size_t key_scalar = (rng.rand() < 0.5) ? (1) : (2);
-    size_t other_scalar = (key_scalar == 1) ? (2) : (1);
-
-    // Which particles have lower value of the key scalar?
-    std::vector<size_t> lower_key_scalar;
-    const auto& s1 = (key_scalar == 1) ? (scalars1) : (scalars2);
-    for(size_t i=0; i<particles.size(); ++i)
-    {
-        if(s1[i] < s1[which])
-            lower_key_scalar.push_back(i);
-    }
-
-
-    for(auto x: lower_key_scalar)
-        std::cout << x << std::endl;
-
-//    // Find the particle it casts a shadow over.
-//    size_t which2;
-//    for(size_t i=0; i<particles.size(); ++i)
-//    {
-//        if(scalars1[which1] > scalars1[i] &&
-//           scalars2[which1] > scalars2[i])
-//        {
-//            which2 = i;
-//            break;
-//        }
-//    }
-
-//    y2 = scalars2[indices2[0]];
-
-//    y1 = (the_same) ? (scalars2[indices2[1]]) : y2;
-//    x2 = (the_same) ? (scalars1[indices1[1]]) : x1;
-
-//    std::cout<<x1<<' '<<x2<<'\n';
-//    std::cout<<y1<<' '<<y2<<std::endl;
-    exit(0);
-
-//    // Write out particle information.
-//    std::fstream fout("sample_info.txt", std::ios::out | std::ios::app);
-//    fout<<iteration<<' '<<log_mass<<' ';
-//    fout<<x1<<' '<<y1<<std::endl;
-//    fout.close();
-
-//    // Add to Context
-//    if(scalar == 0)
-//        context.add_rectangle({x2, y1});
-//    else
-//        context.add_rectangle({x1, y2});
+    // Add rectangle to context
+    if(x == &scalars1)
+        context.add_rectangle({x_crit, y_crit});
+    else
+        context.add_rectangle({y_crit, x_crit});
 
 //    // Decrement remaining mass
-//    log_mass -= 1.0/particles.size();
+    log_mass -= 1.0/particles.size();
 
-//    // Generate replacement particles
-//    std::cout<<"Generating replacement particles..."<<std::flush;
-//    unsigned int accepts = 0;
-//    accepts += replace_particle(i1, rng);
-//    accepts += replace_particle(i2, rng);
-//    std::cout<<"accepted "<<accepts<<"/10000...";
-//    std::cout<<"done."<<std::endl;
+    // Generate replacement particles
+    std::cout<<"Generating replacement particle..."<<std::flush;
+    unsigned int accepts = 0;
+    accepts += replace_particle(which, rng);
+    std::cout<<"accepted "<<accepts<<"/5000...";
+    std::cout<<"done."<<std::endl;
 }
 
 template<class ParticleType>
