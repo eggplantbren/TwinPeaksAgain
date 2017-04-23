@@ -16,12 +16,17 @@ namespace TwinPeaks
 
 class SimpleExample
 {
+    public:
+        // Number of scalars in this problem
+        static constexpr size_t num_scalars = 2;
+
     private:
         // The parameters
         std::vector<double> xs;
 
     public:
-        // Constructor doesn't do much, just sets up xs with the right size.
+        // Constructor doesn't do much,
+        // just sets up xs with the right size.
         SimpleExample();
 
         // Generate from the prior
@@ -30,10 +35,9 @@ class SimpleExample
         // Metropolis proposal
         double perturb(RNG& rng);
 
-        // Get the scalars
-        std::tuple<double, double> get_scalars() const;
+        // Evaluate and return the scalars
+        std::vector<double> get_scalars() const;
 };
-
 
 } // namespace TwinPeaks
 
