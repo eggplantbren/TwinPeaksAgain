@@ -175,7 +175,7 @@ void Sampler<ParticleType>::do_iteration(RNG& rng,
     // Print some messages to stdout
     std::cout << std::setprecision(12);
     std::cout << "Iteration " << iteration << ". ";
-    std::cout << "log(X) ~= " << (double)iteration/particles.size() << ", ";
+    std::cout << "log(X) ~= " << -(double)iteration/particles.size() << ", ";
     std::cout << "log(scalar) = " << scalars[worst] << '.';
     std::cout << std::endl;
 
@@ -190,7 +190,7 @@ void Sampler<ParticleType>::do_iteration(RNG& rng,
                               std::ios::out | std::ios::app);
         sample_info_file << std::setprecision(12);
         sample_info_file << iteration << ",";
-        sample_info_file << (iteration/particles.size()) << ",";
+        sample_info_file << (-(double)iteration/particles.size()) << ",";
         std::vector<double> ss = particles[worst].get_scalars();
         for(size_t i=0; i<ss.size(); ++i)
         {

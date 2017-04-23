@@ -23,6 +23,7 @@ def canonical(temperatures):
     for i in range(0, len(temperatures)):
         temp += sample_info.iloc[:,i+2] / temperatures[i]
     logZ = logsumexp(temp)
+
     return {"logZ": logZ}
 
 # Calculate normalising constant of a canonical distribution
