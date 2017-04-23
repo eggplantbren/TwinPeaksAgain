@@ -45,6 +45,9 @@ class Sampler
         void do_iteration(RNG& rng,
                           bool generate_new_particle=true);
 
+        // Get the current depth
+        double get_depth() const { return (double)iteration/particles.size(); }
+
     /***** Private helper functions *****/
     private:
 

@@ -13,7 +13,7 @@ int main()
     // Create and initialise a Sampler
     TwinPeaks::Sampler<TwinPeaks::SimpleExample> sampler(10, 1000);
 
-    for(int i=0; i<10*100; ++i)
+    while(sampler.get_depth() < 500.0)
         sampler.do_iteration(rng);
 
     return 0;
