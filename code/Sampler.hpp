@@ -7,7 +7,7 @@
 #include <iostream>
 #include <ostream>
 #include <stdexcept>
-#include <stdlib.h>     // For size_t
+#include <stdlib.h>
 #include <vector>
 #include "RNG.h"
 #include "Utils.h"
@@ -42,6 +42,9 @@ class Sampler
 
         // Results from the single-scalar runs
         std::vector<std::vector<double>> results;
+
+        // Output file
+        std::fstream sample_info_file;
 
     public:
         // Constructor. You must specify the number of particles
@@ -139,6 +142,22 @@ void Sampler<ParticleType>::initialise(RNG& rng)
 
     std::cout << "done.\n" << std::endl;
     iteration = 0;
+
+    // Open the output file, if we're doing the combined scalar
+    if(which_scalar == ParticleType::num_scalars)
+    {
+        sample_info_file.open("sample_info.csv", std::ios::out);
+        sample_info_file << "iteration,logX,";
+        for(size_t i=0; i<ParticleType::num_scalars; ++i)
+        {
+            sample_info_file << "scalars[" << i << "]";
+            if(i != ParticleType::num_scalars - 1)
+                sample_info_file << ",";
+        }
+        sample_info_file << std::endl;
+        sample_info_file.close();
+    }
+
 }
 
 template<class ParticleType>
@@ -163,6 +182,25 @@ void Sampler<ParticleType>::do_iteration(RNG& rng,
     // Accumulate results
     if(which_scalar < ParticleType::num_scalars)
         results[which_scalar].push_back(scalars[worst]);
+
+    // Write to files
+    if(which_scalar == ParticleType::num_scalars)
+    {
+        sample_info_file.open("sample_info.csv",
+                              std::ios::out | std::ios::app);
+        sample_info_file << std::setprecision(12);
+        sample_info_file << iteration << ",";
+        sample_info_file << (iteration/particles.size()) << ",";
+        std::vector<double> ss = particles[worst].get_scalars();
+        for(size_t i=0; i<ss.size(); ++i)
+        {
+            sample_info_file << ss[i];
+            if(i != ss.size() - 1)
+                sample_info_file << ",";
+        }
+        sample_info_file << std::endl;
+        sample_info_file.close();
+    }
 
     // Generate replacement
     if(generate_new_particle)

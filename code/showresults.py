@@ -1,8 +1,10 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import pandas as pd
 
-output = np.loadtxt("sample_info.txt")
+sample_info = pd.read_csv("sample_info.csv")
 
-plt.plot(output[:,1], output[:,2], "k.", alpha=0.2)
+plt.plot(sample_info["scalars[0]"], sample_info["scalars[1]"],
+         "b.", markersize=1, alpha=0.2)
 plt.show()
 
