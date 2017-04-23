@@ -27,6 +27,7 @@ class Sampler
 
         // Corresponding scalars
         std::vector<double> scalars;
+        std::vector<double> tiebreakers;
 
     public:
         // Constructor. You must specify the number of particles.
@@ -49,6 +50,7 @@ template<class ParticleType>
 Sampler<ParticleType>::Sampler(size_t num_particles)
 :particles(num_particles)
 ,scalars(num_particles)
+,tiebreakers(num_particles)
 {
 
 }
@@ -63,6 +65,7 @@ void Sampler<ParticleType>::initialise(RNG& rng)
     {
         particles[i].from_prior(rng);
         scalars[i] = particles[i].get_scalar(0);
+        tiebreakers[i] = rng.rand();
     }
 
     std::cout << "done." << std::endl;
