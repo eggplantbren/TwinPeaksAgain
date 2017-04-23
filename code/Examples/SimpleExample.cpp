@@ -35,18 +35,24 @@ double SimpleExample::perturb(RNG& rng)
     return 0.0;
 }
 
-std::vector<double> SimpleExample::get_scalars() const
+double SimpleExample::get_scalar(size_t which) const
 {
-    double s1 = 0.0;
-    double s2 = 0.0;
+    if(which >= num_scalars)
+        throw std::invalid_argument("Invalid scalar requested.");
 
-    for(double x: xs)
+    double s = 0.0;
+    if(which == 0)
     {
-        s1 += -pow(x - 0.5, 2);
-        s2 += -pow(sin(4.0*M_PI*x), 2);
+        for(double x: xs)
+            s += -pow(x - 0.5, 2);
+    }
+    else
+    {
+        for(double x: xs)
+            s += -pow(sin(4.0*M_PI*x), 2);
     }
 
-    return std::vector<double>{s1, s2};
+    return s;
 }
 
 } // namespace TwinPeaks

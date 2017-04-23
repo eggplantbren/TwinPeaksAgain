@@ -35,8 +35,8 @@ class SimpleExample
         // Metropolis proposal
         double perturb(RNG& rng);
 
-        // Evaluate and return the scalars
-        std::vector<double> get_scalars() const;
+        // Evaluate and return one of the scalars
+        double get_scalar(size_t which) const;
 };
 
 } // namespace TwinPeaks
