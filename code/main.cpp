@@ -11,7 +11,7 @@ int main()
     TwinPeaks::RNG rng(time(0));
 
     // Create a Sampler
-    TwinPeaks::Sampler<TwinPeaks::SimpleExample> sampler(100, 1000);
+    TwinPeaks::Sampler<TwinPeaks::SimpleExample> sampler(1000, 100);
 
     // Ascend each scalar
     while(true)

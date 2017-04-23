@@ -176,7 +176,8 @@ void Sampler<ParticleType>::do_iteration(RNG& rng,
     std::cout << std::setprecision(12);
     std::cout << "Iteration " << iteration << ". ";
     std::cout << "log(X) ~= " << -(double)iteration/particles.size() << ", ";
-    std::cout << "log(scalar) = " << scalars[worst] << '.';
+    std::cout << "log(scalar" << which_scalar << ") = ";
+    std::cout << scalars[worst] << '.';
     std::cout << std::endl;
 
     // Accumulate results
