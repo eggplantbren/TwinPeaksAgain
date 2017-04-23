@@ -76,6 +76,9 @@ class Sampler
 
         // Replace worst particle
         void replace_particle(RNG& rng, size_t which);
+
+        // Combined scalar wrt results
+        double combined_scalar(const std::vector<double>& ss) const;
 };
 
 
@@ -85,12 +88,12 @@ class Sampler
 
 template<class ParticleType>
 Sampler<ParticleType>::Sampler(size_t num_particles,
-                               size_t mcmc_steps)
+                               size_t _mcmc_steps)
 :particles(num_particles)
 ,scalars(num_particles)
 ,tiebreakers(num_particles)
 ,iteration(0)
-,mcmc_steps(mcmc_steps)
+,mcmc_steps(_mcmc_steps)
 ,which_scalar(0)
 ,results(ParticleType::num_scalars)
 {
@@ -247,6 +250,22 @@ void Sampler<ParticleType>::print_results(std::ostream& out) const
             out << results[j][i] << ' ';
         out << '\n';
     }
+}
+
+template<class ParticleType>
+double Sampler<ParticleType>::combined_scalar
+                    (const std::vector<double>& ss) const
+{
+    unsigned int result = 0;
+    for(size_t i=0; i<ParticleType::num_scalars; ++i)
+    {
+        for(size_t j=0; j<ParticleType::num_scalars; ++j)
+        {
+            if(ss[i] > results[i][j])
+                ++result;
+        }
+    }
+    return static_cast<double>(result);
 }
 
 } // namespace TwinPeaks
