@@ -50,6 +50,10 @@ class Sampler
         // Run until the specified depth
         void run_to_depth(RNG& rng, double depth);
 
+        // Move on to next task. Returns `true` if there
+        // actually was a next task to move on to.
+        bool next_task(RNG& rng);
+
     /***** Private helper functions *****/
     private:
 
@@ -84,6 +88,7 @@ Sampler<ParticleType>::Sampler(size_t num_particles,
 ,iteration(0)
 ,mcmc_steps(mcmc_steps)
 ,which_scalar(0)
+,results(ParticleType::num_scalars)
 {
 
 }
@@ -91,10 +96,21 @@ Sampler<ParticleType>::Sampler(size_t num_particles,
 template<class ParticleType>
 void Sampler<ParticleType>::run_to_depth(RNG& rng, double depth)
 {
-    while(get_depth() < 500.0)
+    while(get_depth() < depth)
         do_iteration(rng);
 }
 
+template<class ParticleType>
+bool Sampler<ParticleType>::next_task(RNG& rng)
+{
+    if(which_scalar == ParticleType::num_scalars - 1)
+        return false;
+
+    ++which_scalar;
+    initialise(rng);
+
+    return true;
+}
 
 template<class ParticleType>
 void Sampler<ParticleType>::initialise(RNG& rng)
@@ -105,11 +121,12 @@ void Sampler<ParticleType>::initialise(RNG& rng)
     for(size_t i=0; i<particles.size(); ++i)
     {
         particles[i].from_prior(rng);
-        scalars[i] = particles[i].get_scalar(0);
+        scalars[i] = particles[i].get_scalar(which_scalar);
         tiebreakers[i] = rng.rand();
     }
 
     std::cout << "done.\n" << std::endl;
+    iteration = 0;
 }
 
 template<class ParticleType>
@@ -130,6 +147,10 @@ void Sampler<ParticleType>::do_iteration(RNG& rng,
     std::cout << "log(X) ~= " << (double)iteration/particles.size() << ", ";
     std::cout << "log(scalar) = " << scalars[worst] << '.';
     std::cout << std::endl;
+
+    // Accumulate results
+    if(which_scalar < ParticleType::num_scalars)
+        results[which_scalar].push_back(scalars[worst]);
 
     // Generate replacement
     if(generate_new_particle)
@@ -174,7 +195,7 @@ void Sampler<ParticleType>::replace_particle(RNG& rng, size_t which)
         double logH = proposal.perturb(rng);
         if(rng.rand() <= exp(logH))
         {
-            s_proposal = proposal.get_scalar(0);
+            s_proposal = proposal.get_scalar(which_scalar);
             tb_proposal = tiebreakers[which] + rng.randh();
             wrap(tb_proposal, 0.0, 1.0);
             std::pair<double, double> lltb_proposal{s_proposal,

@@ -10,11 +10,17 @@ int main()
     // Create an RNG
     TwinPeaks::RNG rng(time(0));
 
-    // Create a Sampler
-    TwinPeaks::Sampler<TwinPeaks::SimpleExample> sampler(10, 1000);
+    // Create a Sampler and ascend the two scalars
+    TwinPeaks::Sampler<TwinPeaks::SimpleExample> sampler(1, 1000);
 
-    // Run it
-    sampler.run_to_depth(rng, 500.0);
+    while(true)
+    {
+        sampler.run_to_depth(rng, 500.0);
+        bool more_to_do = sampler.next_task(rng);
+
+        if(!more_to_do)
+            break;
+    }
 
     return 0;
 }
