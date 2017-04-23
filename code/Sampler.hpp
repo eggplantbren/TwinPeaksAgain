@@ -53,6 +53,9 @@ class Sampler
 
         // Find the worst particle
         size_t find_worst_particle() const;
+
+        // Replace worst particle
+        void replace_particle(RNG& rng, size_t which);
 };
 
 
@@ -103,9 +106,74 @@ void Sampler<ParticleType>::do_iteration(RNG& rng,
     // Print some messages to stdout
     std::cout << std::setprecision(12);
     std::cout << "Iteration " << iteration << ". ";
+    std::cout << "log(X) ~= " << (double)iteration/particles.size() << ", ";
     std::cout << "log(scalar) = " << scalars[worst] << '.';
     std::cout << std::endl;
 
+    // Generate replacement
+    if(generate_new_particle)
+        replace_particle(rng, worst);
+}
+
+template<class ParticleType>
+void Sampler<ParticleType>::replace_particle(RNG& rng, size_t which)
+{
+    std::pair<double, double> threshold{scalars[which],
+                                        tiebreakers[which]};
+
+    std::cout << "    Generating replacement particle...";
+    std::cout << std::flush;
+
+    // Copy a survivor
+    if(particles.size() > 1)
+    {
+        int copy;
+        do
+        {
+           copy = rng.rand_int(particles.size());
+        }while(copy == (int)which);
+
+        particles[which] = particles[copy];
+        scalars[which] = scalars[copy];
+        tiebreakers[which] = tiebreakers[copy];
+    }
+
+    // Proposal stuff
+    ParticleType proposal;
+    double s_proposal, tb_proposal;
+
+    // Acceptance counter
+    unsigned int accepted = 0;
+
+    // Do the MCMC
+    for(size_t i=0; i<mcmc_steps; ++i)
+    {
+        // Generate proposal
+        proposal = particles[which];
+        double logH = proposal.perturb(rng);
+        if(rng.rand() <= exp(logH))
+        {
+            s_proposal = proposal.get_scalar(0);
+            tb_proposal = tiebreakers[which] + rng.randh();
+            wrap(tb_proposal, 0.0, 1.0);
+            std::pair<double, double> lltb_proposal{s_proposal,
+                                                    tb_proposal};
+
+            // Accept?
+            if(threshold < lltb_proposal)
+            {
+                particles[which] = proposal;
+                scalars[which] = s_proposal;
+                tiebreakers[which] = tb_proposal;
+
+                ++accepted;
+            }
+        }
+    }
+
+    std::cout << "done. ";
+    std::cout << "Accepted " << accepted << '/';
+    std::cout << mcmc_steps << " proposals.\n" << std::endl;
 }
 
 template<class ParticleType>
