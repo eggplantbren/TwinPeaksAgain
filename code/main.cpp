@@ -12,7 +12,7 @@ int main()
 
     // Create and initialise a Sampler
     TwinPeaks::Sampler<TwinPeaks::SimpleExample> sampler(1000);
-    sampler.initialise(rng);
+    sampler.do_iteration(rng);
 
     return 0;
 }

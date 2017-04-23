@@ -29,16 +29,22 @@ class Sampler
         std::vector<double> scalars;
         std::vector<double> tiebreakers;
 
+        // Iteration counter
+        unsigned int iteration;
+
     public:
         // Constructor. You must specify the number of particles.
         Sampler(size_t num_particles);
 
-        // Initialise all the particles from the prior
-        void initialise(RNG& rng);
+        // Do a single NS iteration
+        void do_iteration(RNG& rng,
+                          bool generate_new_particle=true);
 
     /***** Private helper functions *****/
     private:
 
+        // Initialise all the particles from the prior
+        void initialise(RNG& rng);
 };
 
 
@@ -51,6 +57,7 @@ Sampler<ParticleType>::Sampler(size_t num_particles)
 :particles(num_particles)
 ,scalars(num_particles)
 ,tiebreakers(num_particles)
+,iteration(0)
 {
 
 }
@@ -69,6 +76,17 @@ void Sampler<ParticleType>::initialise(RNG& rng)
     }
 
     std::cout << "done." << std::endl;
+}
+
+template<class ParticleType>
+void Sampler<ParticleType>::do_iteration(RNG& rng,
+                                         bool generate_new_particle)
+{
+    if(iteration == 0)
+        initialise(rng);
+
+
+    ++iteration;
 }
 
 } // namespace TwinPeaks
