@@ -47,15 +47,18 @@ class Sampler
         // and MCMC steps per iteration.
         Sampler(size_t num_particles, size_t mcmc_steps);
 
+        // Run until the specified depth
+        void run_to_depth(RNG& rng, double depth);
+
+    /***** Private helper functions *****/
+    private:
+
         // Do a single NS iteration
         void do_iteration(RNG& rng,
                           bool generate_new_particle=true);
 
         // Get the current depth
         double get_depth() const { return (double)iteration/particles.size(); }
-
-    /***** Private helper functions *****/
-    private:
 
         // Initialise all the particles from the prior
         void initialise(RNG& rng);
@@ -84,6 +87,14 @@ Sampler<ParticleType>::Sampler(size_t num_particles,
 {
 
 }
+
+template<class ParticleType>
+void Sampler<ParticleType>::run_to_depth(RNG& rng, double depth)
+{
+    while(get_depth() < 500.0)
+        do_iteration(rng);
+}
+
 
 template<class ParticleType>
 void Sampler<ParticleType>::initialise(RNG& rng)
