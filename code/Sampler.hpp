@@ -100,7 +100,8 @@ Sampler<ParticleType>::Sampler(size_t num_particles,
 ,which_scalar(0)
 ,results(ParticleType::num_scalars)
 {
-
+    sample_info_file.open("sample_info.csv", std::ios::out);
+    sample_info_file.close();
 }
 
 template<class ParticleType>
