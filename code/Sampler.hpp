@@ -3,6 +3,7 @@
 
 // Includes
 #include <fstream>
+#include <iomanip>
 #include <iostream>
 #include <stdexcept>
 #include <stdlib.h>     // For size_t
@@ -32,9 +33,13 @@ class Sampler
         // Iteration counter
         unsigned int iteration;
 
+        // Number of MCMC steps to use
+        size_t mcmc_steps;
+
     public:
-        // Constructor. You must specify the number of particles.
-        Sampler(size_t num_particles);
+        // Constructor. You must specify the number of particles
+        // and MCMC steps per iteration.
+        Sampler(size_t num_particles, size_t mcmc_steps);
 
         // Do a single NS iteration
         void do_iteration(RNG& rng,
@@ -45,6 +50,9 @@ class Sampler
 
         // Initialise all the particles from the prior
         void initialise(RNG& rng);
+
+        // Find the worst particle
+        size_t find_worst_particle() const;
 };
 
 
@@ -53,11 +61,13 @@ class Sampler
 /*************************************************/
 
 template<class ParticleType>
-Sampler<ParticleType>::Sampler(size_t num_particles)
+Sampler<ParticleType>::Sampler(size_t num_particles,
+                               size_t mcmc_steps)
 :particles(num_particles)
 ,scalars(num_particles)
 ,tiebreakers(num_particles)
 ,iteration(0)
+,mcmc_steps(mcmc_steps)
 {
 
 }
@@ -75,18 +85,43 @@ void Sampler<ParticleType>::initialise(RNG& rng)
         tiebreakers[i] = rng.rand();
     }
 
-    std::cout << "done." << std::endl;
+    std::cout << "done.\n" << std::endl;
 }
 
 template<class ParticleType>
 void Sampler<ParticleType>::do_iteration(RNG& rng,
                                          bool generate_new_particle)
 {
+    // On first iteration, generate particles from prior
     if(iteration == 0)
         initialise(rng);
-
-
     ++iteration;
+
+    // Worst particle
+    size_t worst = find_worst_particle();
+
+    // Print some messages to stdout
+    std::cout << std::setprecision(12);
+    std::cout << "Iteration " << iteration << ". ";
+    std::cout << "log(scalar) = " << scalars[worst] << '.';
+    std::cout << std::endl;
+
+}
+
+template<class ParticleType>
+size_t Sampler<ParticleType>::find_worst_particle() const
+{
+    // Zip log likelihoods with tiebreakers
+    std::vector< std::pair<double, double> > lltbs(particles.size());
+    for(size_t i=0; i<particles.size(); ++i)
+    {
+        lltbs[i] = std::pair<double, double>
+                            {scalars[i], tiebreakers[i]};
+    }
+
+    // Argsort
+    std::vector<size_t> indices = argsort(lltbs);
+    return indices[0];
 }
 
 } // namespace TwinPeaks

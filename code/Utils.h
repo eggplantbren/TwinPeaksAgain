@@ -1,7 +1,9 @@
-#ifndef InfoNest_TwinPeaks
-#define InfoNest_TwinPeaks
+#ifndef TwinPeaks_Utils
+#define TwinPeaks_Utils
 
-#include <tuple>
+#include <algorithm>
+#include <stdlib.h>
+#include <vector>
 
 // Useful functions, some of which were copied from DNest4
 
@@ -17,6 +19,23 @@ namespace TwinPeaks
 double mod(double y, double x);
 int    mod(int y, int x);
 void   wrap(double& x, double min, double max);
+
+// Argsort from
+// http://stackoverflow.com/questions/1577475/c-sorting-and-keeping-track-of-indexes
+template <typename T>
+std::vector<size_t> argsort(const std::vector<T>& v)
+{
+	// initialize original index locations
+	std::vector<size_t> idx(v.size());
+	for(size_t i=0; i<idx.size(); i++)
+		idx[i] = i;
+
+	// sort indexes based on comparing values in v
+	std::sort(idx.begin(), idx.end(),
+		[&v](size_t i1, size_t i2) {return v[i1] < v[i2];});
+
+	return idx;
+}
 
 } // namespace TwinPeaks
 
