@@ -5,6 +5,7 @@
 #include <fstream>
 #include <iomanip>
 #include <iostream>
+#include <ostream>
 #include <stdexcept>
 #include <stdlib.h>     // For size_t
 #include <vector>
@@ -53,6 +54,9 @@ class Sampler
         // Move on to next task. Returns `true` if there
         // actually was a next task to move on to.
         bool next_task(RNG& rng);
+
+        // Print the results vectors to the given stream.
+        void print_results(std::ostream& out) const;
 
     /***** Private helper functions *****/
     private:
@@ -232,6 +236,17 @@ size_t Sampler<ParticleType>::find_worst_particle() const
     // Argsort
     std::vector<size_t> indices = argsort(lltbs);
     return indices[0];
+}
+
+template<class ParticleType>
+void Sampler<ParticleType>::print_results(std::ostream& out) const
+{
+    for(size_t i=0; i<results[0].size(); ++i)
+    {
+        for(size_t j=0; j<results.size(); ++j)
+            out << results[j][i] << ' ';
+        out << '\n';
+    }
 }
 
 } // namespace TwinPeaks

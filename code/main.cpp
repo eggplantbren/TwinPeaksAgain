@@ -10,9 +10,10 @@ int main()
     // Create an RNG
     TwinPeaks::RNG rng(time(0));
 
-    // Create a Sampler and ascend the two scalars
+    // Create a Sampler
     TwinPeaks::Sampler<TwinPeaks::SimpleExample> sampler(1, 1000);
 
+    // Ascend each scalar
     while(true)
     {
         sampler.run_to_depth(rng, 500.0);
@@ -21,6 +22,9 @@ int main()
         if(!more_to_do)
             break;
     }
+
+    // Print results
+    sampler.print_results(std::cout);
 
     return 0;
 }
