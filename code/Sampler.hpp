@@ -36,6 +36,12 @@ class Sampler
         // Number of MCMC steps to use
         size_t mcmc_steps;
 
+        // Current scalar being done
+        size_t which_scalar;
+
+        // Results from the single-scalar runs
+        std::vector<std::vector<double>> results;
+
     public:
         // Constructor. You must specify the number of particles
         // and MCMC steps per iteration.
@@ -74,6 +80,7 @@ Sampler<ParticleType>::Sampler(size_t num_particles,
 ,tiebreakers(num_particles)
 ,iteration(0)
 ,mcmc_steps(mcmc_steps)
+,which_scalar(0)
 {
 
 }
