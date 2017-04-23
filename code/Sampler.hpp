@@ -110,7 +110,7 @@ void Sampler<ParticleType>::run_to_depth(RNG& rng, double depth)
 template<class ParticleType>
 bool Sampler<ParticleType>::next_task(RNG& rng)
 {
-    if(which_scalar == ParticleType::num_scalars - 1)
+    if(which_scalar == ParticleType::num_scalars)
         return false;
 
     ++which_scalar;
@@ -128,7 +128,12 @@ void Sampler<ParticleType>::initialise(RNG& rng)
     for(size_t i=0; i<particles.size(); ++i)
     {
         particles[i].from_prior(rng);
-        scalars[i] = particles[i].get_scalar(which_scalar);
+
+        if(which_scalar < ParticleType::num_scalars)
+            scalars[i] = particles[i].get_scalar(which_scalar);
+        else
+            scalars[i] = combined_scalar(particles[i].get_scalars());
+
         tiebreakers[i] = rng.rand();
     }
 
@@ -202,7 +207,11 @@ void Sampler<ParticleType>::replace_particle(RNG& rng, size_t which)
         double logH = proposal.perturb(rng);
         if(rng.rand() <= exp(logH))
         {
-            s_proposal = proposal.get_scalar(which_scalar);
+            if(which_scalar < ParticleType::num_scalars)
+                s_proposal = proposal.get_scalar(which_scalar);
+            else
+                s_proposal = combined_scalar(proposal.get_scalars());
+
             tb_proposal = tiebreakers[which] + rng.randh();
             wrap(tb_proposal, 0.0, 1.0);
             std::pair<double, double> lltb_proposal{s_proposal,
@@ -259,13 +268,15 @@ double Sampler<ParticleType>::combined_scalar
     unsigned int result = 0;
     for(size_t i=0; i<ParticleType::num_scalars; ++i)
     {
-        for(size_t j=0; j<ParticleType::num_scalars; ++j)
+        for(size_t j=0; j<results[i].size(); ++j)
         {
             if(ss[i] > results[i][j])
                 ++result;
+            else
+                break;
         }
     }
-    return static_cast<double>(result);
+    return static_cast<double>(result)/particles.size();
 }
 
 } // namespace TwinPeaks

@@ -55,5 +55,13 @@ double SimpleExample::get_scalar(size_t which) const
     return s;
 }
 
+std::vector<double> SimpleExample::get_scalars() const
+{
+    std::vector<double> result(num_scalars);
+    for(size_t i=0; i<num_scalars; ++i)
+        result[i] = get_scalar(i);
+    return result;
+}
+
 } // namespace TwinPeaks
 

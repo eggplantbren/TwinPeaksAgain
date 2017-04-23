@@ -23,9 +23,6 @@ int main()
             break;
     }
 
-    // Print results
-    sampler.print_results(std::cout);
-
     return 0;
 }
 
