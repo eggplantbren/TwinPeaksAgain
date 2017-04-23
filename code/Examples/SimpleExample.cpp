@@ -5,7 +5,7 @@ namespace TwinPeaks
 {
 
 SimpleExample::SimpleExample()
-:xs(10)
+:xs(100)
 {
 
 }
