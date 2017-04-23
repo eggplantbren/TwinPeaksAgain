@@ -16,7 +16,7 @@ int main()
     // Ascend each scalar
     while(true)
     {
-        sampler.run_to_depth(rng, 500.0);
+        sampler.run_to_depth(rng, 50.0);
         bool more_to_do = sampler.next_task(rng);
 
         if(!more_to_do)
