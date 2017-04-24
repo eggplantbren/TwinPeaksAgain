@@ -15,3 +15,4 @@ objects:
 	$(CC) $(CFLAGS) -c RNG.cpp
 	$(CC) $(CFLAGS) -c Utils.cpp
 	$(CC) $(CFLAGS) -c Examples/SimpleExample.cpp
+	$(CC) $(CFLAGS) -c Examples/Atoms.cpp
