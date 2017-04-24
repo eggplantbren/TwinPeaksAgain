@@ -89,5 +89,13 @@ double Atoms::perturb(RNG& rng)
     return 0.0;
 }
 
+std::vector<double> Atoms::get_scalars() const
+{
+    std::vector<double> result(num_scalars);
+    for(size_t i=0; i<num_scalars; ++i)
+        result[i] = get_scalar(i);
+    return result;
+}
+
 } // namespace TwinPeaks
 

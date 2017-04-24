@@ -10,6 +10,9 @@ namespace TwinPeaks
 
 class Atoms
 {
+    public:
+        static constexpr size_t num_scalars = 2;
+
     private:
         static constexpr int num_atoms = 30;
         static constexpr double L = 100.0;
@@ -28,6 +31,10 @@ class Atoms
 
         // Getter
         double get_scalar(size_t which) const;
+
+
+        // Get all of the scalars
+        std::vector<double> get_scalars() const;
 };
 
 } // namespace TwinPeaks
