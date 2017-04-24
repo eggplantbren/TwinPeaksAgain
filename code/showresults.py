@@ -11,6 +11,21 @@ def logsumexp(xs):
 
 # Load results, normalise prior weights
 sample_info = pd.read_csv("sample_info.csv")
+
+# Plot the logL-logX curves of the individual scalars, then
+# remove them
+for i in [0, 1]:
+    which = sample_info["which_scalar"] == i
+
+    plt.subplot(2, 1, i+1)
+    plt.plot(sample_info["logX"][which],
+             sample_info["scalars[{i}]".format(i=i)][which],
+             "-")
+    plt.xlabel(r"$\log X$")
+plt.show()
+sample_info = sample_info[sample_info["which_scalar"] == 2]
+
+
 logps = sample_info["logX"] - logsumexp(sample_info["logX"])
 depth = -(sample_info["logX"].min())
 
@@ -18,7 +33,7 @@ def canonical(temperatures):
     """
     Construct a canonical distribution.
     """
-    assert len(temperatures) == sample_info.columns.size - 2
+    assert len(temperatures) == sample_info.columns.size - 3
 
     temp = logps.copy()
     for i in range(0, len(temperatures)):
@@ -42,7 +57,7 @@ def truth(T1, T2):
     return {"logZ": logZ, "H": H}
 
 # Calculate log(Z) and H for some canonical distributions
-T1 = 10.0**(np.linspace(-2.0, 4.0, 101))
+T1 = 10.0**(np.linspace(-2.0, 4.0, 31))
 T2 = T1.copy()
 [T1, T2] = np.meshgrid(T1, T2[::-1])
 logZ = T1.copy()
