@@ -11,13 +11,13 @@ int main()
     TwinPeaks::RNG rng(time(0));
 
     // Create a Sampler
-    TwinPeaks::Sampler<TwinPeaks::SimpleExample> sampler(1000, 1000);
+    TwinPeaks::Sampler<TwinPeaks::SimpleExample> sampler(10, 1000, 100);
 
     // Ascend each scalar
     while(true)
     {
-        sampler.run_to_depth(rng, 100.0);
-        bool more_to_do = sampler.next_task(rng);
+        sampler.run_to_depth(rng, 70.0);
+        bool more_to_do = sampler.next_task();
 
         if(!more_to_do)
             break;

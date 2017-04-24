@@ -36,6 +36,7 @@ class Sampler
 
         // Number of MCMC steps to use
         size_t mcmc_steps;
+        size_t more_particles;
 
         // Current scalar being done
         size_t which_scalar;
@@ -48,15 +49,17 @@ class Sampler
 
     public:
         // Constructor. You must specify the number of particles
-        // and MCMC steps per iteration.
-        Sampler(size_t num_particles, size_t mcmc_steps);
+        // and MCMC steps per iteration. If you want to boost the
+        // number of particles for the last run, use more_particles>1.
+        Sampler(size_t num_particles, size_t mcmc_steps,
+                size_t more_particles=1);
 
         // Run until the specified depth
         void run_to_depth(RNG& rng, double depth);
 
         // Move on to next task. Returns `true` if there
         // actually was a next task to move on to.
-        bool next_task(RNG& rng);
+        bool next_task();
 
         // Print the results vectors to the given stream.
         void print_results(std::ostream& out) const;
@@ -91,12 +94,14 @@ class Sampler
 
 template<class ParticleType>
 Sampler<ParticleType>::Sampler(size_t num_particles,
-                               size_t _mcmc_steps)
+                               size_t _mcmc_steps,
+                               size_t _more_particles)
 :particles(num_particles)
 ,scalars(num_particles)
 ,tiebreakers(num_particles)
 ,iteration(0)
 ,mcmc_steps(_mcmc_steps)
+,more_particles(_more_particles)
 ,which_scalar(0)
 ,results(ParticleType::num_scalars)
 {
@@ -107,18 +112,25 @@ Sampler<ParticleType>::Sampler(size_t num_particles,
 template<class ParticleType>
 void Sampler<ParticleType>::run_to_depth(RNG& rng, double depth)
 {
+    initialise(rng);
     while(get_depth() < depth)
         do_iteration(rng);
 }
 
 template<class ParticleType>
-bool Sampler<ParticleType>::next_task(RNG& rng)
+bool Sampler<ParticleType>::next_task()
 {
     if(which_scalar == ParticleType::num_scalars)
         return false;
 
     ++which_scalar;
-    initialise(rng);
+
+    if(which_scalar == ParticleType::num_scalars)
+    {
+        particles.resize(more_particles*particles.size());
+        scalars.resize(particles.size());
+        tiebreakers.resize(particles.size());
+    }
 
     return true;
 }
@@ -165,9 +177,6 @@ template<class ParticleType>
 void Sampler<ParticleType>::do_iteration(RNG& rng,
                                          bool generate_new_particle)
 {
-    // On first iteration, generate particles from prior
-    if(iteration == 0)
-        initialise(rng);
     ++iteration;
 
     // Worst particle
@@ -316,7 +325,7 @@ double Sampler<ParticleType>::combined_scalar
                 break;
         }
     }
-    return static_cast<double>(result)/particles.size();
+    return static_cast<double>(result)/(particles.size() / more_particles);
 }
 
 } // namespace TwinPeaks
