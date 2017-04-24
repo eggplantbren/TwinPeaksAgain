@@ -37,7 +37,7 @@ def canonical(temperatures):
 
     temp = logps.copy()
     for i in range(0, len(temperatures)):
-        temp += sample_info.iloc[:,i+2] / temperatures[i]
+        temp += sample_info.iloc[:,i+3] / temperatures[i]
     logZ = logsumexp(temp)
     post = np.exp(temp - logZ)
     H = np.sum(post * (temp - logZ - logps))
