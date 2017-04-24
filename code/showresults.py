@@ -29,20 +29,19 @@ def canonical(temperatures):
     return {"logZ": logZ, "H": H}
 
 
-x = np.linspace(0.0, 1.0, 10001)
+x = np.linspace(0.0, 1.0, 20001)
 def truth(T1, T2):
-    p = np.exp(-(x - 0.5)**2/T1 - np.sin(4.0*np.pi*x)**2/T2)
+    p = np.exp(-(x - 0.5)**2/T1 - np.abs(x)/T2)
     Z = np.trapz(p, x=x)
     H = np.trapz(p/Z*np.log(p/Z + 1E-300), x=x)
 
-    logZ = 100*np.log(Z)
-    H *= 100
+    logZ = 10*np.log(Z)
+    H *= 10
 
     return {"logZ": logZ, "H": H}
 
 # Calculate log(Z) and H for some canonical distributions
-N = 51
-T1 = 10.0**(np.linspace(-2.0, 4.0, 51))
+T1 = 10.0**(np.linspace(-2.0, 4.0, 101))
 T2 = T1.copy()
 [T1, T2] = np.meshgrid(T1, T2[::-1])
 logZ = T1.copy()
@@ -50,15 +49,15 @@ logZ_est = T1.copy()
 H = T1.copy()
 H_est = T1.copy()
 
-for i in range(0, 51):
-    for j in range(0, 51):
+for i in range(0, T1.shape[0]):
+    for j in range(0, T1.shape[1]):
         temp1 = truth(T1[i, j], T2[i, j])
         temp2 = canonical([T1[i, j], T2[i, j]])
         logZ[i, j] = temp1["logZ"]
         logZ_est[i, j] = temp2["logZ"]
         H[i, j] = temp1["H"]
         H_est[i, j] = temp2["H"]
-    print(i+1)
+    print(i+1, "/", T1.shape[0])
 
 # Plot points.
 plt.plot(sample_info["scalars[0]"], sample_info["scalars[1]"],
@@ -80,12 +79,16 @@ plt.imshow(H_est, extent=extent)
 plt.title(r"$H$")
 
 plt.subplot(2, 2, 3)
-plt.imshow(logZ_est - logZ, cmap="coolwarm", extent=extent)
+error = logZ_est - logZ
+plt.imshow(error, cmap="coolwarm", extent=extent,
+           vmin=-np.max(np.abs(error)), vmax=np.max(np.abs(error)))
 plt.xlabel(r"$\log_{10} T_1$")
 plt.ylabel(r"$\log_{10} T_2$")
 
 plt.subplot(2, 2, 4)
-plt.imshow(H_est - H, cmap="coolwarm", extent=extent)
+error = H_est - H
+plt.imshow(error, cmap="coolwarm", extent=extent,
+           vmin=-np.max(np.abs(error)), vmax=np.max(np.abs(error)))
 plt.xlabel(r"$\log_{10} T_1$")
 plt.show()
 

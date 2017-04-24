@@ -5,7 +5,7 @@ namespace TwinPeaks
 {
 
 SimpleExample::SimpleExample()
-:xs(100)
+:xs(10)
 {
 
 }
@@ -49,7 +49,7 @@ double SimpleExample::get_scalar(size_t which) const
     else
     {
         for(double x: xs)
-            s += -pow(sin(4.0*M_PI*x), 2);
+            s += -std::abs(x);
     }
 
     return s;
