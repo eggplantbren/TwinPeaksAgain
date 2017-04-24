@@ -12,7 +12,7 @@ def logsumexp(xs):
 # Load results, normalise prior weights
 sample_info = pd.read_csv("sample_info.csv")
 logps = sample_info["logX"] - logsumexp(sample_info["logX"])
-depth = -sample_info["logX"].max()
+depth = -(sample_info["logX"].min())
 
 def canonical(temperatures):
     """
