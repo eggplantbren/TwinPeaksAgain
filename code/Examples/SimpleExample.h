@@ -37,9 +37,6 @@ class SimpleExample
 
         // Evaluate and return one of the scalars
         double get_scalar(size_t which) const;
-
-        // Get all of the scalars
-        std::vector<double> get_scalars() const;
 };
 
 } // namespace TwinPeaks

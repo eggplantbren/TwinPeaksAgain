@@ -136,7 +136,7 @@ void Sampler<ParticleType>::initialise(RNG& rng)
         if(which_scalar < ParticleType::num_scalars)
             scalars[i] = particles[i].get_scalar(which_scalar);
         else
-            scalars[i] = combined_scalar(particles[i].get_scalars());
+            scalars[i] = combined_scalar(get_scalars(particles[i]));
 
         tiebreakers[i] = rng.rand();
     }
@@ -193,7 +193,7 @@ void Sampler<ParticleType>::do_iteration(RNG& rng,
         sample_info_file << std::setprecision(12);
         sample_info_file << iteration << ",";
         sample_info_file << (-(double)iteration/particles.size()) << ",";
-        std::vector<double> ss = particles[worst].get_scalars();
+        std::vector<double> ss = get_scalars(particles[worst]);
         for(size_t i=0; i<ss.size(); ++i)
         {
             sample_info_file << ss[i];
@@ -250,7 +250,7 @@ void Sampler<ParticleType>::replace_particle(RNG& rng, size_t which)
             if(which_scalar < ParticleType::num_scalars)
                 s_proposal = proposal.get_scalar(which_scalar);
             else
-                s_proposal = combined_scalar(proposal.get_scalars());
+                s_proposal = combined_scalar(get_scalars(proposal));
 
             tb_proposal = tiebreakers[which] + rng.randh();
             wrap(tb_proposal, 0.0, 1.0);

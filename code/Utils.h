@@ -37,6 +37,16 @@ std::vector<size_t> argsort(const std::vector<T>& v)
 	return idx;
 }
 
+// Get all scalars from a model.
+template<typename T>
+std::vector<double> get_scalars(const T& t)
+{
+    std::vector<double> result(T::num_scalars);
+    for(size_t i=0; i<T::num_scalars; ++i)
+        result[i] = t.get_scalar(i);
+    return result;
+}
+
 } // namespace TwinPeaks
 
 #endif
