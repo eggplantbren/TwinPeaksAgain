@@ -31,6 +31,9 @@ class Atoms
 
         // Getter
         double get_scalar(size_t which) const;
+
+        // Print to output stream (CSV-friendly format)
+        void print(std::ostream& out) const;
 };
 
 } // namespace TwinPeaks

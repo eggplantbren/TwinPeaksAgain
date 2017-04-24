@@ -89,5 +89,22 @@ double Atoms::perturb(RNG& rng)
     return 0.0;
 }
 
+
+void Atoms::print(std::ostream& out) const
+{
+    for(size_t i=0; i<x.size(); ++i)
+        out << x[i] << ",";
+
+    for(size_t i=0; i<y.size(); ++i)
+        out << y[i] << ",";
+
+    for(size_t i=0; i<z.size(); ++i)
+    {
+        out << z[i];
+        if(i != z.size() - 1)
+            out << ",";
+    }
+}
+
 } // namespace TwinPeaks
 
