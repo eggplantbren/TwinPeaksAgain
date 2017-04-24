@@ -12,6 +12,7 @@ def logsumexp(xs):
 # Load results, normalise prior weights
 sample_info = pd.read_csv("sample_info.csv")
 logps = sample_info["logX"] - logsumexp(sample_info["logX"])
+depth = -sample_info["logX"].max()
 
 def canonical(temperatures):
     """
@@ -68,26 +69,35 @@ plt.show()
 
 # Plot phase diagrams
 plt.figure(figsize=(9, 7))
+
+cmap = plt.cm.viridis
+cmap.set_bad("white", 1.0)
+bad = H_est > 0.8*depth
+
 plt.subplot(2, 2, 1)
 extent = np.log10(np.array([T1.min(), T1.max(), T2.min(), T2.max()]))
-plt.imshow(logZ_est, extent=extent)
+
+plt.imshow(np.ma.array(logZ_est, mask=bad), extent=extent, cmap=cmap)
 plt.ylabel(r"$\log_{10} T_2$")
 plt.title(r"$\log(Z)$")
 
 plt.subplot(2, 2, 2)
-plt.imshow(H_est, extent=extent)
+plt.imshow(np.ma.array(logZ_est, mask=bad), extent=extent, cmap=cmap)
 plt.title(r"$H$")
 
+cmap = plt.cm.coolwarm
+cmap.set_bad("white", 1.0)
+
 plt.subplot(2, 2, 3)
-error = logZ_est - logZ
-plt.imshow(error, cmap="coolwarm", extent=extent,
+error = np.ma.array(logZ_est - logZ, mask=bad)
+plt.imshow(error, cmap=cmap, extent=extent,
            vmin=-np.max(np.abs(error)), vmax=np.max(np.abs(error)))
 plt.xlabel(r"$\log_{10} T_1$")
 plt.ylabel(r"$\log_{10} T_2$")
 
 plt.subplot(2, 2, 4)
-error = H_est - H
-plt.imshow(error, cmap="coolwarm", extent=extent,
+error = np.ma.array(H_est - H, mask=bad)
+plt.imshow(error, cmap=cmap, extent=extent,
            vmin=-np.max(np.abs(error)), vmax=np.max(np.abs(error)))
 plt.xlabel(r"$\log_{10} T_1$")
 plt.show()
