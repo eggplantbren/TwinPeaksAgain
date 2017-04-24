@@ -82,7 +82,7 @@ plt.ylabel(r"$\log_{10} T_2$")
 plt.title(r"$\log(Z)$")
 
 plt.subplot(2, 2, 2)
-plt.imshow(np.ma.array(logZ_est, mask=bad), extent=extent, cmap=cmap)
+plt.imshow(np.ma.array(H_est, mask=bad), extent=extent, cmap=cmap)
 plt.title(r"$H$")
 
 cmap = plt.cm.coolwarm
