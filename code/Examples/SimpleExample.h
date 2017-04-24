@@ -2,7 +2,7 @@
 #define TwinPeaks_SimpleExample
 
 // Includes
-#include <tuple>
+#include <ostream>
 #include <vector>
 #include "../RNG.h"
 
@@ -37,6 +37,9 @@ class SimpleExample
 
         // Evaluate and return one of the scalars
         double get_scalar(size_t which) const;
+
+        // Print to output stream (CSV-friendly format)
+        void print(std::ostream& out) const;
 };
 
 } // namespace TwinPeaks

@@ -44,7 +44,8 @@ class Sampler
         // Results from the single-scalar runs
         std::vector<std::vector<double>> results;
 
-        // Output file
+        // Output files
+        std::fstream sample_file;
         std::fstream sample_info_file;
 
     public:
@@ -105,6 +106,7 @@ Sampler<ParticleType>::Sampler(size_t num_particles,
 ,which_scalar(0)
 ,results(ParticleType::num_scalars)
 {
+    sample_file.open("sample.csv", std::ios::out);
     sample_info_file.open("sample_info.csv", std::ios::out);
 
     sample_info_file << "which_scalar,iteration,logX,";
@@ -115,7 +117,6 @@ Sampler<ParticleType>::Sampler(size_t num_particles,
             sample_info_file << ",";
     }
     sample_info_file << std::endl;
-
 }
 
 template<class ParticleType>
@@ -188,6 +189,12 @@ void Sampler<ParticleType>::do_iteration(RNG& rng,
         results[which_scalar].push_back(scalars[worst]);
 
     // Write to files
+    if(which_scalar == ParticleType::num_scalars)
+    {
+        particles[worst].print(sample_file);
+        sample_file << std::endl;
+    }
+
     sample_info_file << std::setprecision(12);
     sample_info_file << which_scalar << ",";
     sample_info_file << iteration << ",";

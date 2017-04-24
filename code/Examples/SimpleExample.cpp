@@ -55,5 +55,15 @@ double SimpleExample::get_scalar(size_t which) const
     return s;
 }
 
+void SimpleExample::print(std::ostream& out) const
+{
+    for(size_t i=0; i<xs.size(); ++i)
+    {
+        out << xs[i];
+        if(i != xs.size()-1)
+            out << ",";
+    }
+}
+
 } // namespace TwinPeaks
 
