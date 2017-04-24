@@ -4,7 +4,7 @@
 // Includes
 #include <tuple>
 #include <vector>
-#include "RNG.h"
+#include "../RNG.h"
 
 namespace TwinPeaks
 {

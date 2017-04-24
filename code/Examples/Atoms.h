@@ -1,7 +1,7 @@
 #ifndef TwinPeaks_Atoms
 #define TwinPeaks_Atoms
 
-#include "RNG.h"
+#include "../RNG.h"
 #include <ostream>
 #include <vector>
 
