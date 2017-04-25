@@ -68,7 +68,10 @@ double Atoms::get_scalar(size_t which_scalar) const
 
 double Atoms::perturb(RNG& rng)
 {
-    int reps = pow((double)num_atoms*3, rng.rand());
+    int reps = 1;
+    if(rng.rand() <= 0.5)
+        reps = (int)pow((double)num_atoms*3, rng.rand());
+
     for(int rep=0; rep<reps; ++rep)
     {
         int i = rng.rand_int(num_atoms);
