@@ -107,6 +107,8 @@ Sampler<ParticleType>::Sampler(size_t num_particles,
 ,results(ParticleType::num_scalars)
 {
     sample_file.open("sample.csv", std::ios::out);
+    sample_file << ParticleType::description() << std::endl;
+
     sample_info_file.open("sample_info.csv", std::ios::out);
 
     sample_info_file << "which_scalar,iteration,logX,";

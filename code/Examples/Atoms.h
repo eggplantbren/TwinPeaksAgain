@@ -3,6 +3,7 @@
 
 #include "../RNG.h"
 #include <ostream>
+#include <string>
 #include <vector>
 
 namespace TwinPeaks
@@ -34,6 +35,9 @@ class Atoms
 
         // Print to output stream (CSV-friendly format)
         void print(std::ostream& out) const;
+
+        // For CSV header
+        static std::string description();
 };
 
 } // namespace TwinPeaks

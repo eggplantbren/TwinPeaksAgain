@@ -1,8 +1,7 @@
 #include "Atoms.h"
 #include "../Utils.h"
 #include <cmath>
-
-using namespace std;
+#include <sstream>
 
 namespace TwinPeaks
 {
@@ -104,6 +103,24 @@ void Atoms::print(std::ostream& out) const
         if(i != z.size() - 1)
             out << ",";
     }
+}
+
+std::string Atoms::description()
+{
+    std::stringstream s;
+
+    for(size_t i=0; i<num_atoms; ++i)
+        s << "x[" << i << "],";
+    for(size_t i=0; i<num_atoms; ++i)
+        s << "y[" << i << "],";
+    for(size_t i=0; i<num_atoms; ++i)
+    {
+        s << "z[" << i << ']';
+        if(i != num_atoms - 1)
+           s << ",";
+    }
+
+    return s.str();
 }
 
 } // namespace TwinPeaks

@@ -3,6 +3,7 @@
 
 // Includes
 #include <ostream>
+#include <string>
 #include <vector>
 #include "../RNG.h"
 
@@ -19,6 +20,7 @@ class SimpleExample
     public:
         // Number of scalars in this problem
         static constexpr size_t num_scalars = 2;
+        static constexpr size_t size = 10;
 
     private:
         // The parameters
@@ -40,6 +42,9 @@ class SimpleExample
 
         // Print to output stream (CSV-friendly format)
         void print(std::ostream& out) const;
+
+        // For CSV header
+        static std::string description();
 };
 
 } // namespace TwinPeaks

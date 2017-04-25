@@ -1,11 +1,12 @@
 #include "SimpleExample.h"
 #include "../Utils.h"
+#include <sstream>
 
 namespace TwinPeaks
 {
 
 SimpleExample::SimpleExample()
-:xs(10)
+:xs(size)
 {
 
 }
@@ -63,6 +64,20 @@ void SimpleExample::print(std::ostream& out) const
         if(i != xs.size()-1)
             out << ",";
     }
+}
+
+std::string SimpleExample::description()
+{
+    std::stringstream s;
+
+    for(size_t i=0; i<size; ++i)
+    {
+        s << "x[" << i << ']';
+        if(i != size - 1)
+            s << ",";
+    }
+
+    return s.str();
 }
 
 } // namespace TwinPeaks
