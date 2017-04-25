@@ -27,6 +27,7 @@ for i in [0, 1]:
         plt.plot(logX, s, "-")
         plt.ylim([ymin, ymax + 0.05*yrange])
         plt.xlabel(r"$\log X$")
+        plt.ylabel(r"$S_{k}$".format(k=i))
     except:
         pass
 plt.show()
@@ -84,8 +85,8 @@ for i in range(0, T1.shape[0]):
 # Plot points.
 plt.plot(sample_info["scalars[0]"], sample_info["scalars[1]"],
          "k.", markersize=1, alpha=0.2)
-plt.xlabel(r"$L_1$")
-plt.ylabel(r"$L_2$")
+plt.xlabel(r"$S_1$")
+plt.ylabel(r"$S_2$")
 plt.show()
 
 # Plot phase diagrams
