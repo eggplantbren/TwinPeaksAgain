@@ -15,17 +15,23 @@ sample_info = pd.read_csv("sample_info.csv")
 # Plot the logL-logX curves of the individual scalars, then
 # remove them
 for i in [0, 1]:
-    which = sample_info["which_scalar"] == i
+    try:
+        which = sample_info["which_scalar"] == i
+        logX = sample_info["logX"][which]
+        s = np.array(sample_info["scalars[{i}]".format(i=i)][which])
+        ymin = s[len(s) // 20]
+        ymax = s[-1]
+        yrange = ymax - ymin
 
-    plt.subplot(2, 1, i+1)
-    plt.plot(sample_info["logX"][which],
-             sample_info["scalars[{i}]".format(i=i)][which],
-             "-")
-    plt.xlabel(r"$\log X$")
+        plt.subplot(2, 1, i+1)
+        plt.plot(logX, s, "-")
+        plt.ylim([ymin, ymax + 0.05*yrange])
+        plt.xlabel(r"$\log X$")
+    except:
+        pass
 plt.show()
+
 sample_info = sample_info[sample_info["which_scalar"] == 2]
-
-
 logps = sample_info["logX"] - logsumexp(sample_info["logX"])
 depth = -(sample_info["logX"].min())
 
