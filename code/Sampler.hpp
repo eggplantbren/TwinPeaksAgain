@@ -48,12 +48,15 @@ class Sampler
         std::fstream sample_file;
         std::fstream sample_info_file;
 
+        // Thinning for sample_file
+        size_t thin;
+
     public:
         // Constructor. You must specify the number of particles
         // and MCMC steps per iteration. If you want to boost the
         // number of particles for the last run, use more_particles>1.
         Sampler(size_t num_particles, size_t mcmc_steps,
-                size_t more_particles=1);
+                size_t more_particles=1, size_t thin=1);
 
         // Run until the specified depth
         void run_to_depth(RNG& rng, double depth);
@@ -96,7 +99,8 @@ class Sampler
 template<class ParticleType>
 Sampler<ParticleType>::Sampler(size_t num_particles,
                                size_t _mcmc_steps,
-                               size_t _more_particles)
+                               size_t _more_particles,
+                               size_t _thin)
 :particles(num_particles)
 ,scalars(num_particles)
 ,tiebreakers(num_particles)
@@ -105,8 +109,10 @@ Sampler<ParticleType>::Sampler(size_t num_particles,
 ,more_particles(_more_particles)
 ,which_scalar(0)
 ,results(ParticleType::num_scalars)
+,thin(_thin)
 {
     sample_file.open("sample.csv", std::ios::out);
+    sample_file << "iteration,logX,";
     sample_file << ParticleType::description() << std::endl;
 
     sample_info_file.open("sample_info.csv", std::ios::out);
@@ -191,22 +197,25 @@ void Sampler<ParticleType>::do_iteration(RNG& rng,
         results[which_scalar].push_back(scalars[worst]);
 
     // Write to files
-    if(which_scalar == ParticleType::num_scalars)
+    if((which_scalar == ParticleType::num_scalars) &&
+       (iteration % thin == 0))
     {
+        sample_file << iteration << ',';
+        sample_file << (-(double)iteration/particles.size()) << ',';
         particles[worst].print(sample_file);
         sample_file << std::endl;
     }
 
     sample_info_file << std::setprecision(12);
-    sample_info_file << which_scalar << ",";
-    sample_info_file << iteration << ",";
-    sample_info_file << (-(double)iteration/particles.size()) << ",";
+    sample_info_file << which_scalar << ',';
+    sample_info_file << iteration << ',';
+    sample_info_file << (-(double)iteration/particles.size()) << ',';
     std::vector<double> ss = get_scalars(particles[worst]);
     for(size_t i=0; i<ss.size(); ++i)
     {
         sample_info_file << ss[i];
         if(i != ss.size() - 1)
-            sample_info_file << ",";
+            sample_info_file << ',';
     }
     sample_info_file << std::endl;
 
