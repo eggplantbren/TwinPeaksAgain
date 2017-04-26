@@ -36,6 +36,14 @@ sample_info = sample_info[sample_info["which_scalar"] == 2]
 logps = sample_info["logX"] - logsumexp(sample_info["logX"])
 depth = -(sample_info["logX"].min())
 
+
+# Plot points.
+plt.plot(sample_info["scalars[0]"], sample_info["scalars[1]"],
+         "k.", markersize=1, alpha=0.2)
+plt.xlabel(r"$S_1$")
+plt.ylabel(r"$S_2$")
+plt.show()
+
 def canonical(temperatures):
     """
     Construct a canonical distribution.
@@ -87,12 +95,6 @@ for i in range(0, T1.shape[0]):
         H_est[i, j] = temp2["H"]
     print(i+1, "/", T1.shape[0])
 
-# Plot points.
-plt.plot(sample_info["scalars[0]"], sample_info["scalars[1]"],
-         "k.", markersize=1, alpha=0.2)
-plt.xlabel(r"$S_1$")
-plt.ylabel(r"$S_2$")
-plt.show()
 
 # Plot phase diagrams
 plt.figure(1, figsize=(9, 7))
