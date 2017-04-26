@@ -47,9 +47,12 @@ def canonical(temperatures):
         temp += sample_info.iloc[:,i+3] / temperatures[i]
     logZ = logsumexp(temp)
     post = np.exp(temp - logZ)
-    H = np.sum(post * (temp - logZ - logps))
+    H = np.sum(post*(temp - logZ - logps))
 
-    return {"logZ": logZ, "H": H}
+    S1 = np.sum(post*sample_info["scalars[0]"])
+    S2 = np.sum(post*sample_info["scalars[1]"])
+
+    return {"logZ": logZ, "H": H, "S1": S1, "S2": S2}
 
 
 x = np.linspace(0.0, 1.0, 20001)
@@ -71,6 +74,8 @@ logZ = T1.copy()
 logZ_est = T1.copy()
 H = T1.copy()
 H_est = T1.copy()
+S1_expected = T1.copy()
+S2_expected = T2.copy()
 
 for i in range(0, T1.shape[0]):
     for j in range(0, T1.shape[1]):
@@ -90,7 +95,7 @@ plt.ylabel(r"$S_2$")
 plt.show()
 
 # Plot phase diagrams
-plt.figure(figsize=(9, 7))
+plt.figure(1, figsize=(9, 7))
 
 cmap = plt.cm.viridis
 cmap.set_bad("white", 1.0)
@@ -107,17 +112,35 @@ plt.subplot(2, 2, 2)
 plt.imshow(np.ma.array(H_est, mask=bad), extent=extent, cmap=cmap)
 plt.title(r"$H$")
 
+plt.subplot(2, 2, 3)
+
+plt.imshow(np.ma.array(S1_expected, mask=bad),
+           extent=extent,
+           cmap=cmap)
+plt.xlabel(r"$\log_{10} T_1$")
+plt.ylabel(r"$\log_{10} T_2$")
+plt.title(r"$\left<S_1\right>$")
+
+plt.subplot(2, 2, 4)
+plt.imshow(np.ma.array(S2_expected, mask=bad),
+           extent=extent,
+           cmap=cmap)
+plt.ylabel(r"$\log_{10} T_2$")
+plt.title(r"$\left<S_2\right>$")
+
+plt.figure(2)
+
 cmap = plt.cm.coolwarm
 cmap.set_bad("white", 1.0)
 
-plt.subplot(2, 2, 3)
+plt.subplot(1, 2, 1)
 error = np.ma.array(logZ_est - logZ, mask=bad)
 plt.imshow(error, cmap=cmap, extent=extent,
            vmin=-np.max(np.abs(error)), vmax=np.max(np.abs(error)))
 plt.xlabel(r"$\log_{10} T_1$")
 plt.ylabel(r"$\log_{10} T_2$")
 
-plt.subplot(2, 2, 4)
+plt.subplot(1, 2, 2)
 error = np.ma.array(H_est - H, mask=bad)
 plt.imshow(error, cmap=cmap, extent=extent,
            vmin=-np.max(np.abs(error)), vmax=np.max(np.abs(error)))
