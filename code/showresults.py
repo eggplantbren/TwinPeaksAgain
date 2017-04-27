@@ -32,14 +32,22 @@ for i in [0, 1]:
         pass
 plt.show()
 
-sample_info = sample_info[sample_info["which_scalar"] == 2]
-logps = sample_info["logX"] - logsumexp(sample_info["logX"])
-depth = -(sample_info["logX"].min())
+
+run0 = sample_info[sample_info["which_scalar"] == 0]
+run1 = sample_info[sample_info["which_scalar"] == 1]
+run2 = sample_info[sample_info["which_scalar"] == 2]
+logps = run2["logX"] - logsumexp(run2["logX"])
+depth = -(run2["logX"].min())
+
 
 
 # Plot points.
-plt.plot(sample_info["scalars[0]"], sample_info["scalars[1]"],
-         "k.", markersize=1, alpha=0.2)
+plt.plot(run0["scalars[0]"], run0["scalars[1]"],
+         "b.", markersize=1, alpha=0.1)
+plt.plot(run1["scalars[0]"], run1["scalars[1]"],
+         "r.", markersize=1, alpha=0.1)
+plt.plot(run2["scalars[0]"], run2["scalars[1]"],
+         "k.", markersize=1, alpha=0.1)
 plt.xlabel(r"$S_1$")
 plt.ylabel(r"$S_2$")
 plt.show()
@@ -48,17 +56,17 @@ def canonical(temperatures):
     """
     Construct a canonical distribution.
     """
-    assert len(temperatures) == sample_info.columns.size - 3
+    assert len(temperatures) == run2.columns.size - 3
 
     temp = logps.copy()
     for i in range(0, len(temperatures)):
-        temp += sample_info.iloc[:,i+3] / temperatures[i]
+        temp += run2.iloc[:,i+3] / temperatures[i]
     logZ = logsumexp(temp)
     post = np.exp(temp - logZ)
     H = np.sum(post*(temp - logZ - logps))
 
-    S1 = np.sum(post*sample_info["scalars[0]"])
-    S2 = np.sum(post*sample_info["scalars[1]"])
+    S1 = np.sum(post*run2["scalars[0]"])
+    S2 = np.sum(post*run2["scalars[1]"])
 
     return {"logZ": logZ, "H": H, "S1": S1, "S2": S2}
 
@@ -75,7 +83,7 @@ def truth(T1, T2):
     return {"logZ": logZ, "H": H}
 
 # Calculate log(Z) and H for some canonical distributions
-T1 = 10.0**(np.linspace(-2.0, 4.0, 31))
+T1 = 10.0**(np.linspace(-2.0, 2.0, 51))
 T2 = T1.copy()
 [T1, T2] = np.meshgrid(T1, T2[::-1])
 logZ = T1.copy()
