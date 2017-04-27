@@ -1,4 +1,5 @@
 #include "Utils.h"
+#include <algorithm>
 #include <cassert>
 #include <cmath>
 
@@ -23,6 +24,21 @@ int mod(int y, int x)
 		return y - (y/x)*x;
 	else
 		return (x-1) - TwinPeaks::mod(-y-1, x);
+}
+
+
+double logsumexp(const std::vector<double>& values)
+{
+    double top = *max_element(values.begin(), values.end());
+    double result = 0.0;
+    for(double v: values)
+        result += exp(v - top);
+    return top + log(result);
+}
+
+double logsumexp(double x, double y)
+{
+    return logsumexp(std::vector<double>{x, y});
 }
 
 } // namespace TwinPeaks

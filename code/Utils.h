@@ -47,6 +47,9 @@ std::vector<double> get_scalars(const T& t)
     return result;
 }
 
+double logsumexp(const std::vector<double>& values);
+double logsumexp(double x, double y);
+
 } // namespace TwinPeaks
 
 #endif
