@@ -12,14 +12,14 @@ int main()
 
     // Create a Sampler
     TwinPeaks::Sampler<TwinPeaks::SimpleExample> sampler(100,  // num_particles
-                                                         1000, // mcmc_steps
-                                                         10,   // more_particles
+                                                         5000, // mcmc_steps
+                                                         30,   // more_particles
                                                          100); // thinning)
 
     // Ascend each scalar
     while(true)
     {
-        sampler.run_to_depth(rng, 70.0);
+        sampler.run_to_depth(rng, 500.0);
         bool more_to_do = sampler.next_task();
 
         if(!more_to_do)

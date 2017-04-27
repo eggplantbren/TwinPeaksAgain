@@ -73,12 +73,12 @@ def canonical(temperatures):
 
 x = np.linspace(0.0, 1.0, 20001)
 def truth(T1, T2):
-    p = np.exp(-(x - 0.5)**2/T1 - np.abs(x)/T2)
+    p = np.exp(-(x - 0.5)**2/T1 - np.abs(x - 0.4)/T2)
     Z = np.trapz(p, x=x)
     H = np.trapz(p/Z*np.log(p/Z + 1E-300), x=x)
 
-    logZ = 10*np.log(Z)
-    H *= 10
+    logZ = 100*np.log(Z)
+    H *= 100
 
     return {"logZ": logZ, "H": H}
 
@@ -109,7 +109,7 @@ plt.figure(1, figsize=(9, 7))
 
 cmap = plt.cm.viridis
 cmap.set_bad("white", 1.0)
-bad = H_est > 0.8*depth
+bad = H_est > 0.8*(depth - 10.0)
 
 plt.subplot(2, 2, 1)
 extent = np.log10(np.array([T1.min(), T1.max(), T2.min(), T2.max()]))

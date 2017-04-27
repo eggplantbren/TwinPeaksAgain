@@ -50,7 +50,7 @@ double SimpleExample::get_scalar(size_t which) const
     else
     {
         for(double x: xs)
-            s += -std::abs(x);
+            s += -std::abs(x - 0.4);
     }
 
     return s;

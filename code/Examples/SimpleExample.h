@@ -20,7 +20,7 @@ class SimpleExample
     public:
         // Number of scalars in this problem
         static constexpr size_t num_scalars = 2;
-        static constexpr size_t size = 10;
+        static constexpr size_t size = 100;
 
     private:
         // The parameters
